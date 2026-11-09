@@ -1,0 +1,94 @@
+/* Nova Launcher · Design #5 · isolated above Modrinth's existing backend */
+html.nova-theme .app-grid-layout,
+html.nova-theme .app-contents { --left-bar-width: 252px; --right-bar-width: 0px; }
+html.nova-theme .app-grid-navbar { display: none !important; }
+html.nova-theme .app-sidebar { display: none !important; }
+html.nova-theme .app-contents.sidebar-enabled { grid-template-columns: minmax(0,1fr) 0px !important; }
+html.nova-theme .app-contents { border-radius: 0; background: #d6b2dd; }
+html.nova-theme .app-contents::before { box-shadow: none; border: 0; }
+html.nova-theme .app-title-bar { background: linear-gradient(90deg, #745584, #9980c2); color: white; }
+html.nova-theme .app-viewport { scrollbar-color: #ba83dc9c transparent; }
+html.nova-theme .nova-app-title { font-size: 19px; font-weight: 780; color: #fff; letter-spacing: -.02em; white-space: nowrap; padding-left: 9px; }
+html.nova-theme .app-title-bar .nova-app-title { user-select: none; }
+.nova-sidebar { position: fixed; width: 252px; top: 48px; bottom: 0; left: 0; z-index: 48; padding: 24px 16px 20px; background: linear-gradient(160deg, rgba(115,68,127,.69),rgba(152,105,156,.64),rgba(181,144,174,.65)); box-shadow: inset -1px 0 rgba(255,255,255,.35); backdrop-filter: blur(26px) saturate(1.15); display: flex; flex-direction: column; color:#fff; font-family: Inter, system-ui, sans-serif; }
+.nova-side-brand { display:flex; align-items:center; gap:9px; font-size:20px; font-weight:800; padding:4px 9px 30px; letter-spacing:-.025em; text-shadow:0 1px 9px #55315e85; }
+.nova-side-icon { color: #f4c8ff; font-size:39px; width:38px; line-height:1; text-align:center; filter:drop-shadow(0 0 6px #f4b1ff); }
+.nova-sidebar nav { display:flex; flex-direction:column; gap:10px; }
+.nova-sidebar nav button { display:flex; align-items:center; gap:15px; min-height:54px; width:100%; text-align:left; font-size:17px; font-weight:520; color:#fff; border:1px solid transparent; border-radius:15px; background:transparent; cursor:pointer; padding:11px 17px; transition:background .18s ease, border-color .18s ease; }
+.nova-sidebar nav button:hover { background:rgba(236,197,251,.24); }
+.nova-sidebar nav button.nova-active { background:linear-gradient(125deg,rgba(210,160,255,.75),rgba(160,98,217,.67)); border-color:#fffd; box-shadow:0 4px 20px #5f347c4a,inset 0 0 9px #fff2; font-weight:700; }
+.nova-nav-icon { font-size:25px; font-weight:430; width:32px; height:29px; line-height:27px; text-align:center; flex-shrink:0; }
+.nova-sidebar-footer { margin-top:auto; padding:13px 5px; border-top:1px solid #fff5; display:flex; flex-direction:column; gap:10px; }
+.nova-sidebar-footer button { background:rgba(237,201,250,.25); border:1px solid #fff7; border-radius:13px; min-height:40px; color:#fff; cursor:pointer; font-weight:650; }
+.nova-sidebar-footer small { font-size:11px; opacity:.92; text-align:center; }
+.nova-page { min-height:100%; width:100%; color:#fff; background:linear-gradient(180deg,rgba(78,34,106,.10),rgba(86,45,112,.17) 47%,rgba(54,35,84,.38)),url('./cherry-grove.avif') center center / cover no-repeat fixed; font-family:Inter,system-ui,sans-serif; text-shadow:0 2px 12px #56375c52; }
+.nova-glass { backdrop-filter:blur(19px) saturate(1.35); -webkit-backdrop-filter:blur(19px) saturate(1.35); border:1px solid rgba(255,255,255,.48); border-radius:18px; color:#fff; background:linear-gradient(135deg,rgba(193,153,227,.38),rgba(117,100,182,.28)); box-shadow:0 7px 23px rgba(63,43,90,.16), inset 0 1px rgba(255,255,255,.18); }
+.nova-glass:hover { border-color:rgba(255,255,255,.7); }
+.nova-page button { font-family:inherit; cursor:pointer; }
+.nova-page button:focus-visible,.nova-sidebar button:focus-visible { outline:3px solid #fff; outline-offset:2px; }
+.nova-page button:disabled { cursor:not-allowed; opacity:.53; }
+.nova-page h1,.nova-page h2,.nova-page p { margin-top:0; }
+.nova-home { min-height:calc(100vh - 48px); padding:28px clamp(20px,3vw,42px) 28px; display:flex; flex-direction:column; gap:24px; justify-content:space-between; }
+.nova-home-center { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:48px 0 22px; text-align:center; }
+.nova-star { font-size:84px; line-height:1; color:#fcd6ff; text-shadow:0 0 24px #bb67fc; margin-bottom:16px; }
+.nova-home h1 { font-size:clamp(36px,4.6vw,70px); letter-spacing:-.052em; font-weight:780; margin:0 0 4px; }
+.nova-home-center > p { font-size:clamp(14px,1.55vw,20px); color:#fff4ff; margin:0; }
+.nova-rule { margin:30px 0 34px; display:flex; gap:18px; align-items:center; width:255px; justify-content:center; color:#fff9; }
+.nova-rule:before,.nova-rule:after { content:''; flex:1; height:2px; background:#fffb; }
+.nova-launch-row { display:flex; gap:16px; width:min(790px,100%); align-items:stretch; min-height:80px; }
+.nova-install-choice { flex:1; min-width:0; display:flex; align-items:center; gap:15px; text-align:left; padding:15px 19px; }
+.nova-grass-icon { font-size:42px; line-height:1; }
+.nova-select-content { flex:1; min-width:0; }
+.nova-select-content small { font-size:10px; letter-spacing:.075em; display:block; opacity:.85; margin-bottom:5px; }
+.nova-select-content select { background:transparent; color:white; width:100%; border:none; font-size:18px; font-weight:700; outline:none; cursor:pointer; text-overflow:ellipsis; }
+.nova-select-content select option { background:#72598a; color:white; }
+.nova-play { flex:0 0 245px; color:#fff; border:1px solid #fffd; border-radius:19px; background:linear-gradient(155deg,#d79dff,#a353f1); font-size:29px; font-weight:750; box-shadow:0 7px 26px #8037ac72; }
+.nova-play:hover:not(:disabled) { filter:brightness(1.08); }
+.nova-home-center .nova-hint { margin-top:14px; font-size:13px; }
+.nova-home-tiles { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:15px; }
+.nova-tile { padding:18px 16px; display:flex; gap:17px; align-items:center; text-align:left; min-height:116px; }
+.nova-tile b { border:1px solid #fffa; background:#b77fd289; border-radius:13px; width:58px; height:58px; line-height:58px; text-align:center; font-size:32px; flex-shrink:0; }
+.nova-tile span { flex:1; min-width:0; }
+.nova-tile strong { display:block; font-size:19px; }
+.nova-tile small { display:block; font-size:13px; color:#fff8; margin-top:4px; }
+.nova-tile em { font-style:normal; font-size:26px; }
+.nova-content { min-height:calc(100vh - 48px); padding:40px clamp(24px,4vw,55px); background:linear-gradient(135deg,rgba(86,56,123,.22),rgba(120,70,124,.12)); }
+.nova-section-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:27px; }
+.nova-section-head h1 { font-size:clamp(30px,3.3vw,45px); margin:0 0 6px; font-weight:750; }
+.nova-section-head p { margin:0; font-size:15px; color:#fffdfd; }
+.nova-content-stack { display:flex; flex-direction:column; gap:14px; max-width:1200px; }
+.nova-button { border:1px solid rgba(255,255,255,.65); padding:12px 18px; border-radius:12px; color:white; font-weight:700; text-shadow:0 1px 8px #53305a30; }
+.nova-primary { background:linear-gradient(150deg,#cf88f9,#9d4de1); box-shadow:0 4px 14px #6330873b; }
+.nova-soft { background:rgba(191,150,231,.28); }
+.nova-inline-link { display:inline-block; text-decoration:none; }
+.nova-empty,.nova-detail { padding:24px; }
+.nova-detail h2 { margin:0 0 10px; font-size:23px; }
+.nova-detail p { color:#fffdfd; line-height:1.55; max-width:680px; }
+.nova-instance { display:flex; align-items:center; gap:15px; padding:16px; }
+.nova-instance-icon { width:52px; height:52px; display:grid; place-items:center; background:#e0b7ef75; border-radius:12px; font-size:29px; }
+.nova-instance-info { flex:1; min-width:0; }
+.nova-instance-info strong,.nova-instance-info small { display:block; }
+.nova-instance-info strong { font-size:18px; }
+.nova-instance-info small { font-size:13px; margin-top:6px; color:#fff9; text-transform:capitalize; }
+.nova-mod-search { display:flex; gap:10px; align-items:stretch; }
+.nova-mod-search input { padding:14px 16px; min-width:0; flex:1; outline:none; }
+.nova-mod-search input::placeholder { color:#fff9; }
+.nova-mod-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:13px; }
+.nova-mod { padding:16px; display:flex; align-items:flex-start; text-align:left; gap:14px; min-height:143px; }
+.nova-mod img { width:66px; height:66px; object-fit:cover; border-radius:13px; }
+.nova-mod-text { flex:1; min-width:0; }
+.nova-mod-text strong,.nova-mod-text small,.nova-mod-text span { display:block; }
+.nova-mod-text strong { font-size:18px; }
+.nova-mod-text small { opacity:.87; font-size:11px; margin-top:4px; }
+.nova-mod-text p { font-size:12px; line-height:1.5; margin:8px 0; }
+.nova-mod-text span { color:#f7d8ff; font-size:12px; font-weight:700; }
+.nova-error { color:#ffe6e6; background:#6d244f91; padding:10px; border-radius:12px; }
+@media(max-width:1060px) { .nova-home-tiles { grid-template-columns:1fr; } .nova-tile { min-height:80px; } .nova-home { padding-bottom:18px; } }
+@media(max-width:800px) { html.nova-theme .app-grid-layout,html.nova-theme .app-contents { --left-bar-width:74px; } .nova-sidebar { width:74px; padding:18px 8px; } .nova-sidebar nav button { padding:10px; justify-content:center; } .nova-sidebar nav button span:not(.nova-nav-icon),.nova-side-brand span,.nova-sidebar-footer { display:none; } .nova-launch-row { flex-direction:column; } .nova-play { min-height:64px; flex:auto; } .nova-mod-search { flex-wrap:wrap; } .nova-section-head { flex-direction:column; align-items:start; } }
+@media(prefers-reduced-motion:reduce) { .nova-sidebar nav button { transition:none; } .nova-glass { backdrop-filter:none; } }
+
+/* Version stamp makes it obvious when the actual Nova build is running. */
+.nova-test-label {display:inline-block; margin-left:8px; padding:3px 7px; border:1px solid #fce6ffad; border-radius:5px; font-size:10px; letter-spacing:.08em; font-weight:800; background:#9c56ca6e; vertical-align:middle;}
+
+/* Cover scenic landscape without stretching it. Landscape is 1672×941 (16:9). */
+.nova-page { background-size: cover; background-position: center 46%; }
