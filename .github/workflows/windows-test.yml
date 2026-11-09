@@ -3,6 +3,12 @@ name: Nova Launcher Windows test installer
 # Build only on request. Prevents costly rebuilds for each artwork or docs change.
 on:
   workflow_dispatch:
+  # Run once on this migration workflow update; other source commits remain manual.
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/windows-test.yml'
 
 permissions:
   contents: read
