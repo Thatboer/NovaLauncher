@@ -1,0 +1,27 @@
+# Nova Launcher: reproducible Windows test build from GitLab source + pinned Modrinth upstream.
+# GitLab.com hosted Windows runner (beta). No ZIP upload needed.
+stages:
+  - build
+
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - when: never
+
+windows_test_installer:
+  stage: build
+  tags:
+    - saas-windows-medium-amd64
+  timeout: 3h
+  variables:
+    GIT_DEPTH: "1"
+    CI: "true"
+  script:
+    - 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File nova/build-windows.ps1'
+  artifacts:
+    when: on_success
+    name: "NovaLauncher-Windows-Unsigned-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - out/*.exe
+      - out/*.sha256
+    expire_in: 14 days
