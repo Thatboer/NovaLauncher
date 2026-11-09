@@ -1,0 +1,5 @@
+/.nova-tools/
+/modrinth-upstream/
+/out/
+*.nova-original
+.DS_Store
