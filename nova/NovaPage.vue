@@ -211,7 +211,7 @@ function openSettings() {
   <main class="nova-page">
     <section v-if="page === 'home'" class="nova-home">
       <div class="nova-home-center">
-        <img class="nova-home-logo" src="./nova-logo.webp" alt="NOVA" />
+        <img class="nova-home-logo" src="./nova-logo.svg" alt="NOVA" />
         <h1>Nova Launcher</h1>
         <p>A sleek and modern way to play Minecraft.</p>
         <div class="nova-rule"><span>✦</span></div>
