@@ -1,0 +1,92 @@
+name: Publish Nova Launcher Windows preview
+
+on:
+  push:
+    branches: [xmcl-rebuild]
+    paths:
+      - '.github/workflows/publish-nova-preview.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    name: Create downloadable GitHub pre-release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: v2.0.0-preview.1
+      ASSET: NovaLauncher-v2.0.0-preview.1-Windows-x64.zip
+      RUN_ID: '42740009132'
+      UPSTREAM_SHA: '4aee50aaf1cb7ee741ba995c87017f4dbe85584e'
+    steps:
+      - name: Checkout Nova source
+        uses: actions/checkout@v4
+
+      - name: Retrieve the verified successful Windows build
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release
+          gh run download "$RUN_ID" --repo "$GITHUB_REPOSITORY" --name "Nova-v2-XMCL-Windows-Portable-1" --dir release
+          expected="release/NovaLauncher-v2-0.73.1-win32-x64.zip"
+          test -s "$expected"
+          unzip -tq "$expected" >/dev/null
+          mv "$expected" "release/$ASSET"
+          sha256sum "release/$ASSET" | tee release/checksum.txt
+          echo "Windows executables in portable archive:"
+          unzip -Z1 "release/$ASSET" | grep -Ei '\.exe$' | head -20 || true
+
+      - name: Include upstream MIT license and test instructions
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location             "https://raw.githubusercontent.com/Voxelum/x-minecraft-launcher/$UPSTREAM_SHA/LICENSE"             --output release/XMCL-LICENSE.txt
+          test -s release/XMCL-LICENSE.txt
+          cat > release/START-HERE.txt <<'EOF'
+          NOVA LAUNCHER v2 - EXPERIMENTAL WINDOWS PREVIEW
+
+          1. Extract the entire ZIP to its own folder.
+          2. Run the included Windows launcher executable.
+          3. This is an unsigned portable developer build, NOT an installer.
+          4. Microsoft login, instance creation, and game launching still
+             require real Windows testing before production use.
+          5. Do not delete or overwrite your existing Minecraft data.
+          6. Based on XMCL, MIT licensed. See XMCL-LICENSE.txt.
+          Source: https://github.com/Thatboer/NovaLauncher/tree/xmcl-rebuild
+          EOF
+          (cd release && zip -q -j "$ASSET" XMCL-LICENSE.txt START-HERE.txt)
+          unzip -tq "release/$ASSET" >/dev/null
+          sha256sum "release/$ASSET" | tee release/final-sha256.txt
+
+      - name: Create clearly marked public preview release
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Preview release already exists; refusing to overwrite its artifact."
+            exit 1
+          fi
+          cat > release/NOTES.md <<'EOF'
+          ## Nova Launcher v2 • Experimental Windows preview 🌸
+
+          The **first XMCL-based Nova desktop preview** with a redesigned lavender-glass interface inspired by Design #5.
+
+          **This build passed GitHub Actions compilation only.** It has **not yet been tested on a Windows computer** for Microsoft account authentication, downloading Minecraft, launching Minecraft, or multiplayer joining.
+
+          **How to try:** Download the ZIP below, extract **all** files into a folder, then open the launcher executable. No installer is included. The binary is unsigned, so Windows may warn you.
+
+          The NovaSMP server is pinned in the UI, but one-click joining and synchronization with Minecraft's in-game server list are not yet implemented. Mod browsing works through public catalogs; installation into XMCL is not yet connected.
+
+          Original backend: [XMCL](https://github.com/Voxelum/x-minecraft-launcher), MIT licensed. [Nova source](https://github.com/Thatboer/NovaLauncher/tree/xmcl-rebuild). This project is unofficial and not affiliated with Microsoft, Mojang, XMCL or Modrinth.
+          EOF
+          gh release create "$TAG" "release/$ASSET" "release/final-sha256.txt" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target xmcl-rebuild \
+            --title 'Nova Launcher v2 • Windows Preview 1' \
+            --notes-file release/NOTES.md \
+            --prerelease
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json name,url,assets
