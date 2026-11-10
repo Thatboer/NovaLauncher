@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="NOVA logo">
+<defs>
+<radialGradient id="sky"><stop stop-color="#251047"/><stop offset=".76" stop-color="#0d061c"/><stop offset="1" stop-color="#050309"/></radialGradient>
+<linearGradient id="name" x1="0" x2="0.45" y1="1" y2="0"><stop stop-color="#6123ac"/><stop offset=".65" stop-color="#8b35de"/><stop offset="1" stop-color="#d296ff"/></linearGradient>
+<linearGradient id="ground" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#67c74c"/><stop offset=".54" stop-color="#367b30"/><stop offset=".54" stop-color="#75431f"/><stop offset="1" stop-color="#33243b"/></linearGradient>
+<radialGradient id="portal"><stop stop-color="#ad4af0"/><stop offset="1" stop-color="#4e14a5"/></radialGradient>
+<filter id="glow"><feGaussianBlur stdDeviation="5"/></filter>
+<filter id="star"><feGaussianBlur stdDeviation="2"/></filter>
+</defs>
+<rect width="512" height="512" rx="256" fill="url(#sky)"/>
+<circle cx="256" cy="256" r="246" fill="none" stroke="#9824fb" stroke-width="7"/>
+<circle cx="256" cy="256" r="238" fill="none" stroke="#d589ff" stroke-opacity=".19"/>
+<g fill="#f2caff">
+<circle cx="61" cy="147" r="2"/><circle cx="82" cy="290" r="1.5"/><circle cx="420" cy="142" r="1.8"/><circle cx="435" cy="340" r="2"/><circle cx="389" cy="72" r="1.5"/><circle cx="173" cy="79" r="1"/><circle cx="84" cy="98" r="1"/><circle cx="132" cy="188" r="1.5"/><circle cx="402" cy="231" r="1.4"/><circle cx="365" cy="161" r="1"/><circle cx="437" cy="182" r="1.8"/><circle cx="165" cy="406" r="1"/><circle cx="382" cy="415" r="1.8"/><circle cx="87" cy="380" r="1.5"/><circle cx="346" cy="373" r="1.2"/><circle cx="64" cy="243" r="1.5"/><circle cx="296" cy="56" r="1.5"/><circle cx="221" cy="134" r="1.2"/>
+</g>
+<g stroke="#daa0ff" stroke-width="2.4" stroke-linecap="round"><path d="M51 208h17m-8-9v18M427 78h17m-8-8v17M442 278h13m-6-6v13M71 363h19m-9-10v20"/></g>
+<g fill="#fff0ff" filter="url(#glow)" opacity=".92"><circle cx="256" cy="83" r="15"/><circle cx="93" cy="179" r="5"/><circle cx="426" cy="369" r="5"/></g>
+<path d="M256 31V138M207 83h99M226 53l60 61M287 53l-61 61" stroke="#f9e2ff" stroke-width="1.8" stroke-linecap="round"/>
+<circle cx="256" cy="83" r="6" fill="#fff"/>
+<g transform="translate(0 6)"><path d="M254 11 269 26 254 41 239 26Z" fill="none" stroke="#ad57e9" stroke-width="3"/><path d="M254 20l6 6-6 6-6-6Z" fill="#d19fff"/></g>
+<path d="M101 142 152 114" fill="none" stroke="#bd6bff" stroke-width="5" stroke-linecap="round"/><circle cx="152" cy="114" r="3.5" fill="#fff0ff"/><path d="M365 342l63-51" stroke="#bd6bff" stroke-width="5" stroke-linecap="round"/><circle cx="365" cy="342" r="3.5" fill="#fce7ff"/>
+<!-- The NOVA wordmark is self-contained pixel geometry, no external font required. -->
+<g fill="url(#name)" stroke="#efd0ff" stroke-width="3.3" stroke-linejoin="miter">
+<path d="M65 211h27v-10h21l19 44v-44h35v104h-35l-30-49v49H65Z"/>
+<path fill-rule="evenodd" d="M179 201h77v104h-77Zm28 29v46h21v-46Z"/>
+<path d="M270 201h37v50h16v-50h35v55h-8v18h-10v18h-10v13h-37v-13h-9v-18h-9v-19h-5Z"/>
+<path fill-rule="evenodd" d="M370 201h73l16 104h-36l-4-26h-26l-4 26h-35Zm30 29-4 23h18l-3-23Z"/>
+</g>
+<g opacity=".9" filter="url(#star)"><rect x="64" y="206" width="397" height="98" fill="none" stroke="#a23cff" stroke-width="5"/></g>
+<!-- Floating Minecraft-inspired island and purple portal. -->
+<path d="M125 376 192 355h126l69 22-16 30-115 75-112-74Z" fill="url(#ground)" stroke="#241829" stroke-width="5"/>
+<path d="M125 376 190 351h125l72 25-27 17-96 7-116-10Z" fill="#56a742"/>
+<g><path d="M168 368v-47h10v47M332 368v-47h11v47" stroke="#6b3d20" stroke-width="8"/><path d="M140 330v-17h18v-16h33v16h19v22h-70ZM303 333v-20h22v-17h37v17h18v20Z" fill="#3e994c" stroke="#1d622b" stroke-width="4"/></g>
+<rect x="229" y="316" width="55" height="74" rx="3" fill="#1c1324" stroke="#bbb0c2" stroke-width="9"/>
+<rect x="238" y="326" width="38" height="53" fill="url(#portal)"/>
+<rect x="248" y="335" width="23" height="36" fill="#b851ed" opacity=".32" filter="url(#glow)"/>
+<path d="M212 393h90" stroke="#a8a0b7" stroke-width="9" stroke-linecap="square"/>
+<g fill="#d4baff"><rect x="200" y="345" width="8" height="28"/><rect x="302" y="345" width="8" height="28"/></g>
+<g fill="#f5deff"><circle cx="204" cy="342" r="6"/><circle cx="306" cy="342" r="6"/></g>
+<circle cx="256" cy="475" r="12" fill="#9529dd"/><path d="M250 472h3v4h-3zm9 0h3v4h-3zm-7 8h8" stroke="#100519" stroke-width="3"/>
+</svg>
