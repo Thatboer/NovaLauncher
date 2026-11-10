@@ -20,7 +20,7 @@ function navigate(id: string) {
 </script>
 <template>
   <aside class="nova-sidebar">
-    <div class="nova-side-brand"><div class="nova-side-icon">✧</div><span>Nova Launcher</span></div>
+    <div class="nova-side-brand"><div class="nova-side-icon" aria-hidden="true">N</div><span>Nova Launcher</span></div>
     <nav aria-label="Nova navigation">
       <button v-for="link in links" :key="link.id" :class="{ 'nova-active': active === link.id }" @click="navigate(link.id)">
         <span class="nova-nav-icon">{{ link.icon }}</span><span>{{ link.title }}</span>
