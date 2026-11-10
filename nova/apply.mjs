@@ -13,6 +13,7 @@ const files = {
   splash: 'apps/app-frontend/src/components/ui/SplashScreen.vue',
   html: 'apps/app-frontend/index.html',
   rust: 'apps/app/src/main.rs',
+  installer: 'apps/app/nsis/hooks.nsi',
 }
 const required = Object.values(files)
 function mustContain(value, token, area) {
@@ -171,6 +172,12 @@ function patchRust(value) {
   return value.replace('Loading Modrinth App!', 'Loading Nova Launcher!')
 }
 
+function patchInstaller(value) {
+  const oldPhrase = 'An old installation of the Modrinth App was detected'
+  mustContain(value, oldPhrase, 'NSIS upgrade warning')
+  return value.replace(oldPhrase, 'An existing Nova Launcher installation was detected')
+}
+
 const changes = [
   [files.app, patchApp],
   [files.index, patchIndex],
@@ -178,6 +185,7 @@ const changes = [
   [files.splash, patchSplash],
   [files.html, patchHtml],
   [files.rust, patchRust],
+  [files.installer, patchInstaller],
 ]
 const staged = []
 for (const [relative, fn] of changes) {
