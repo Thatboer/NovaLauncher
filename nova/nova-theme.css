@@ -519,3 +519,356 @@ html.nova-theme .nova-mod-grid {grid-template-columns:repeat(auto-fit,minmax(280
  html.nova-theme .nova-instance {flex-wrap:wrap;}
  html.nova-theme .nova-instance-info {flex-basis:calc(100% - 68px);}
 }
+
+/* NOVA v0.7 FINAL VISUAL PASS
+   Uses actual source selectors from the native Tauri app and CreateInstance
+   modal; avoids the flat, gray upstream look without changing game services. */
+html.nova-theme {
+  --top-bar-height: 44px;
+  --left-bar-width: 228px;
+  --nova-glass-opacity: .75;
+  --nova-inner-blur: 9px;
+  --nova-text: #fdf7ff;
+  --nova-muted: #ecd5f8;
+  --nova-stroke: rgba(245,214,255,.36);
+  --nova-deep: #2a153e;
+  --color-bg: #291737 !important;
+  --color-raised-bg: #3b2352 !important;
+  --color-super-raised-bg: #533267 !important;
+  --color-button-bg: rgba(137,88,171,.4) !important;
+  --color-button-bg-selected: #ae69ee !important;
+  --color-brand: #c786ff !important;
+  --color-brand-highlight: rgba(184,110,255,.33) !important;
+  color-scheme: dark;
+}
+html.nova-theme .app-title-bar,
+html.nova-theme .nova-titlebar {
+  height:var(--top-bar-height) !important;
+  background:linear-gradient(95deg,#55336f,#71518f 59%,#7d599b) !important;
+  border-bottom:1px solid rgba(246,214,255,.35);
+  box-shadow:0 3px 12px rgba(24,10,40,.22);
+}
+html.nova-theme .nova-titlebar-brand {gap:11px!important;}
+html.nova-theme .nova-titlebar-logo {
+  width:29px;height:29px;max-width:29px;display:block;flex:0 0 29px;
+  object-fit:contain;vertical-align:middle;
+  filter:drop-shadow(0 0 8px rgba(199,107,255,.6));
+}
+html.nova-theme .nova-titlebar-brand strong {font-size:15px;font-weight:780;}
+html.nova-theme .nova-titlebar-brand small {font-size:11px;color:#f6dcff;}
+html.nova-theme .nova-test-label {
+  font-size:9px!important;letter-spacing:.045em;
+  background:rgba(192,129,239,.34)!important;
+  border:1px solid rgba(246,222,255,.56)!important;
+}
+html.nova-theme .app-contents,
+html.nova-theme .app-viewport {background:var(--nova-deep);min-height:0;}
+html.nova-theme .app-contents,
+html.nova-theme .app-grid-layout {--left-bar-width:228px!important;--right-bar-width:0px!important;}
+html.nova-theme .nova-sidebar {
+  top:var(--top-bar-height)!important;width:228px!important;
+  padding:18px 12px 14px!important;
+  background:linear-gradient(160deg,rgba(61,35,86,.96),rgba(89,57,111,.92) 58%,rgba(116,72,123,.91))!important;
+  box-shadow:4px 0 16px rgba(23,10,43,.32),inset -1px 0 rgba(247,212,255,.24)!important;
+  backdrop-filter:blur(18px) saturate(1.15);
+}
+html.nova-theme .nova-side-brand {gap:9px;padding:4px 5px 23px!important;font-size:16px!important;}
+html.nova-theme .nova-side-logo {width:38px;height:38px;}
+html.nova-theme .nova-sidebar nav {gap:4px!important;}
+html.nova-theme .nova-sidebar nav button {
+  min-height:46px!important;padding:9px 13px!important;border-radius:12px!important;
+  gap:12px!important;font-size:13px!important;font-weight:610!important;
+  text-shadow:none;transition:background .15s ease,border-color .15s ease;
+}
+html.nova-theme .nova-sidebar nav button.nova-active {
+  background:linear-gradient(125deg,rgba(206,150,245,.73),rgba(139,76,204,.8))!important;
+  border-color:rgba(255,236,255,.76)!important;
+  box-shadow:0 5px 17px rgba(43,18,72,.28),inset 0 1px rgba(255,255,255,.28)!important;
+}
+html.nova-theme .nova-nav-icon {font-size:21px!important;width:25px!important;line-height:25px;}
+html.nova-theme .nova-sidebar-footer {gap:9px;padding:11px 4px 0!important;}
+html.nova-theme .nova-sidebar-footer button {
+  min-height:39px;border-radius:11px;background:rgba(193,143,224,.26);
+}
+html.nova-theme .nova-sidebar-footer small {font-size:10px;opacity:.84;}
+html.nova-theme .nova-page {
+  height:100%;min-height:calc(100dvh - var(--top-bar-height));
+  overflow:auto;isolation:isolate;background-color:#3e284f!important;
+  background-attachment:scroll!important;
+  background-image:
+    linear-gradient(90deg,rgba(23,12,44,.17),rgba(45,22,65,.08) 46%,rgba(67,29,91,.12)),
+    var(--nova-scene-url,none)!important;
+  background-position:center center,center 47%!important;
+  background-size:cover,cover!important;
+  background-repeat:no-repeat!important;
+  image-rendering:auto;
+  text-shadow:none;
+}
+html.nova-theme .nova-page:has(.nova-content)::before {
+  inset:0!important;position:absolute!important;
+  background:linear-gradient(130deg,rgba(48,26,70,.25),rgba(80,45,110,.17))!important;
+  backdrop-filter:blur(clamp(3px,var(--nova-inner-blur,9px),9px)) saturate(1.04)!important;
+  -webkit-backdrop-filter:blur(clamp(3px,var(--nova-inner-blur,9px),9px)) saturate(1.04)!important;
+}
+html.nova-theme .nova-page .nova-glass,
+html.nova-theme .nova-page .nova-panel,
+html.nova-theme .nova-page .nova-instance {
+  color:var(--nova-text);
+  background:linear-gradient(132deg,
+    rgba(59,31,93,var(--nova-glass-opacity,.75)),
+    rgba(88,48,122,.73))!important;
+  border:1px solid var(--nova-stroke)!important;
+  border-radius:15px!important;
+  box-shadow:0 10px 26px rgba(19,7,35,.22),inset 0 1px rgba(255,255,255,.14)!important;
+  backdrop-filter:blur(16px) saturate(1.18);
+  -webkit-backdrop-filter:blur(16px) saturate(1.18);
+}
+html.nova-theme .nova-page .nova-glass:hover {
+  border-color:rgba(255,237,255,.59)!important;
+}
+html.nova-theme .nova-page :is(input,select) {
+  color:#fff;
+}
+html.nova-theme .nova-page :is(h1,h2,h3,strong) {color:#fff;text-shadow:0 1px 8px rgba(26,9,40,.23);}
+html.nova-theme .nova-page :is(p,small) {color:#eddbf7;}
+html.nova-theme .nova-button.nova-primary,
+html.nova-theme .nova-play {
+  background:linear-gradient(120deg,#d792fc,#a44cf1 70%,#9656ed)!important;
+  border:1px solid rgba(253,224,255,.66)!important;color:#fff!important;
+  box-shadow:0 7px 20px rgba(113,44,180,.37),inset 0 1px rgba(255,255,255,.24)!important;
+}
+html.nova-theme .nova-button.nova-soft {background:rgba(123,74,160,.43)!important;}
+html.nova-theme .nova-home {
+  min-height:calc(100dvh - var(--top-bar-height))!important;
+  padding:18px clamp(16px,2.4vw,33px) 20px!important;
+  gap:9px!important;
+}
+html.nova-theme .nova-home-center {padding:7px 0 12px!important;min-height:320px;}
+html.nova-theme .nova-home-logo {
+  width:108px!important;height:108px!important;margin:2px 0 8px!important;
+  filter:drop-shadow(0 7px 18px rgba(34,8,65,.55))!important;
+}
+html.nova-theme .nova-home h1 {
+  font-size:clamp(35px,4.0vw,57px)!important;
+  letter-spacing:-.045em!important;
+  margin:0 0 3px!important;line-height:1.08;
+}
+html.nova-theme .nova-home-center > p {font-size:clamp(12px,1.2vw,17px)!important;color:#fff!important;}
+html.nova-theme .nova-rule {margin:15px 0 18px!important;width:170px!important;}
+html.nova-theme .nova-launch-row {
+  max-width:680px!important;width:100%!important;
+  min-height:65px!important;gap:12px!important;
+}
+html.nova-theme .nova-install-choice {
+  flex:1 1 auto;min-width:0;padding:11px 15px!important;
+}
+html.nova-theme .nova-install-choice small {color:#efd1ff!important;}
+html.nova-theme .nova-select-content select {font-size:14px!important;}
+html.nova-theme .nova-play {
+  flex:0 0 200px!important;min-height:65px!important;
+  border-radius:15px!important;font-size:25px!important;
+}
+html.nova-theme .nova-play:disabled {opacity:.65!important;color:#e6cbfa!important;}
+html.nova-theme .nova-first {margin:13px 0 0!important;padding:9px 15px!important;}
+html.nova-theme .nova-home-tiles {
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:12px!important;flex-shrink:0;
+}
+html.nova-theme .nova-tile {
+  min-height:94px!important;padding:13px 15px!important;
+  gap:12px!important;border-radius:15px!important;
+}
+html.nova-theme .nova-tile b {
+  width:47px!important;height:47px!important;line-height:47px!important;
+  font-size:28px!important;border-radius:10px!important;
+  background:linear-gradient(145deg,rgba(206,152,246,.6),rgba(142,81,209,.55));
+}
+html.nova-theme .nova-tile strong {font-size:15px!important;}
+html.nova-theme .nova-tile small {font-size:10px!important;color:#edd4f9!important;}
+html.nova-theme .nova-content {
+  min-height:calc(100dvh - var(--top-bar-height))!important;
+  max-width:1460px;margin-inline:auto;
+  padding:30px clamp(18px,3vw,43px) 36px!important;
+  background:transparent!important;
+}
+html.nova-theme .nova-section-head {margin-bottom:21px!important;}
+html.nova-theme .nova-section-head h1 {
+  font-size:clamp(27px,3vw,39px)!important;line-height:1.1!important;letter-spacing:-.03em;
+}
+html.nova-theme .nova-section-head p {font-size:12px!important;color:#f0dffa!important;}
+html.nova-theme .nova-content-stack {gap:12px!important;max-width:100%!important;}
+html.nova-theme .nova-settings-nav {gap:5px!important;}
+html.nova-theme .nova-settings-category {min-height:47px!important;font-size:12px!important;}
+html.nova-theme .nova-settings-panel {padding:18px 21px!important;}
+html.nova-theme .nova-settings-panel .nova-setting-row {padding:13px 0!important;}
+html.nova-theme .nova-profile-grid {gap:12px!important;}
+html.nova-theme .nova-profile-panel {padding:16px!important;}
+html.nova-theme .nova-account-hero {min-height:150px!important;}
+
+/* Small, dismissible auth notice. Never pushes the layout down again. */
+html.nova-theme .nova-auth-notice {
+  position:fixed!important;
+  top:calc(var(--top-bar-height) + 12px)!important;
+  right:18px!important;
+  width:min(385px,calc(100vw - 265px))!important;
+  z-index:70!important;min-height:57px;
+  padding:11px 12px;display:flex;align-items:flex-start;gap:9px;
+  color:#f8edff;background:rgba(55,32,76,.95)!important;
+  border:1px solid rgba(230,164,255,.56)!important;border-radius:13px;
+  box-shadow:0 12px 32px rgba(21,9,37,.44);
+  backdrop-filter:blur(18px);
+}
+html.nova-theme .nova-auth-notice-icon {
+  font-weight:850;display:grid;place-items:center;flex:0 0 22px;
+  height:22px;border:1px solid #d6a0ef77;border-radius:50%;
+  color:#f7ccff;font-size:13px;
+}
+html.nova-theme .nova-auth-notice-copy {flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;}
+html.nova-theme .nova-auth-notice-copy strong {font-size:12px;color:#fff;}
+html.nova-theme .nova-auth-notice-copy small {font-size:10px;line-height:1.35;color:#e6cdeb;}
+html.nova-theme :is(.nova-auth-retry,.nova-auth-dismiss) {
+  background:rgba(184,118,231,.24);border:1px solid #f4d0ff65;border-radius:7px;
+  color:#fceaff;font-weight:690;padding:4px 7px;font-size:11px;
+}
+html.nova-theme .nova-auth-dismiss {font-size:17px;line-height:1;padding:3px 7px;}
+
+/* All upstream modal surfaces now match NOVA. Creation is styled more precisely. */
+html.nova-theme .modal-overlay.standard,
+html.nova-theme .modal-overlay.warning {
+  background:rgba(12,4,27,.62)!important;
+  backdrop-filter:blur(11px)!important;
+}
+html.nova-theme .modal-body {
+  background:linear-gradient(145deg,rgba(65,38,91,.97),rgba(48,29,73,.98))!important;
+  color:#fff!important;border:1px solid rgba(240,196,255,.36)!important;
+  border-radius:19px!important;
+  box-shadow:0 26px 70px rgba(9,3,22,.62),inset 0 1px rgba(255,255,255,.12)!important;
+}
+html.nova-theme .modal-body [data-modal-content] {
+  color:#fff;
+}
+html.nova-theme .modal-body :is(.text-primary,.text-contrast) {color:#fff!important;}
+html.nova-theme .modal-body :is(.text-secondary,.text-tertiary) {color:#dec4ed!important;}
+html.nova-theme .modal-body input {
+  background:rgba(37,18,58,.61)!important;
+  border-color:rgba(229,182,255,.43)!important;color:#fff!important;
+}
+html.nova-theme .modal-body button:focus-visible,
+html.nova-theme .modal-body input:focus-visible {
+  outline-color:#d49dff!important;
+}
+html.nova-theme .modal-body.nova-create-instance-modal {
+  width:min(690px,calc(100vw - 50px))!important;
+  max-width:min(690px,calc(100vw - 50px))!important;
+}
+html.nova-theme .nova-create-instance-modal > div:first-of-type:not([data-modal-content]) {
+  border-color:rgba(249,209,255,.22)!important;
+}
+html.nova-theme .nova-create-instance-modal [data-modal-content] {
+  padding:20px 24px 22px!important;
+}
+html.nova-theme .nova-create-instance-modal button.group {
+  background:linear-gradient(115deg,rgba(112,72,153,.55),rgba(82,49,129,.52))!important;
+  border:1px solid rgba(230,181,255,.32)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.13)!important;
+  border-radius:13px!important;
+  padding:11px 12px!important;
+}
+html.nova-theme .nova-create-instance-modal button.group:hover {
+  border-color:rgba(252,214,255,.66)!important;
+  background:linear-gradient(115deg,rgba(149,94,200,.73),rgba(115,64,167,.65))!important;
+}
+html.nova-theme .nova-create-instance-modal button.group > div:first-child {
+  border-color:rgba(231,185,255,.38)!important;
+  background:rgba(180,128,222,.15)!important;
+  border-radius:10px!important;
+  width:48px!important;height:48px!important;
+}
+html.nova-theme .nova-create-instance-modal button.group > div:first-child svg {
+  color:#e3b3ff!important;stroke:#e3b3ff!important;
+}
+html.nova-theme .nova-create-instance-modal button.group span:first-child {color:#fff!important;}
+html.nova-theme .nova-create-instance-modal button.group span:last-child {color:#e4caed!important;}
+
+/* Servers: two real columns and a usable empty state, no default server. */
+html.nova-theme .nova-custom-servers {max-width:1180px!important;}
+html.nova-theme .nova-server-grid {
+  display:grid;grid-template-columns:minmax(0,1.38fr) minmax(270px,.92fr);
+  gap:13px;align-items:start;
+}
+html.nova-theme .nova-server-main-column,
+html.nova-theme .nova-server-side-column {display:flex;flex-direction:column;gap:13px;min-width:0;}
+html.nova-theme .nova-server-hero {
+  min-height:290px;padding:20px;display:flex;flex-direction:column;align-items:flex-start;
+  background:linear-gradient(125deg,rgba(71,35,110,.85),rgba(110,50,145,.65)),radial-gradient(ellipse at 80% 10%,rgba(200,132,238,.56),transparent 65%)!important;
+}
+html.nova-theme .nova-server-hero-spacer {flex:1;}
+html.nova-theme .nova-server-hero-content {position:relative;max-width:440px;}
+html.nova-theme .nova-server-hero-mark {
+  position:absolute;right:-65px;top:-69px;font-size:94px;color:#efb5ff;
+  opacity:.42;pointer-events:none;text-shadow:0 0 25px #b86aff;
+}
+html.nova-theme .nova-server-hero h2 {
+  font-size:clamp(23px,2.5vw,32px);font-weight:750;margin:0 0 9px;
+}
+html.nova-theme .nova-server-hero p {font-size:12px;line-height:1.5;margin-bottom:16px;color:#f0d9f9;}
+html.nova-theme .nova-server-list,
+html.nova-theme .nova-server-quick {padding:17px!important;}
+html.nova-theme .nova-panel-title {display:flex;align-items:center;justify-content:space-between;gap:8px;}
+html.nova-theme .nova-panel-title h2,
+html.nova-theme .nova-server-quick h2 {font-size:17px;margin:0 0 7px;}
+html.nova-theme .nova-panel-title span {font-size:10px;opacity:.8;}
+html.nova-theme .nova-server-empty {min-height:114px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;}
+html.nova-theme .nova-server-empty > span {font-size:25px;color:#dba5ff;}
+html.nova-theme .nova-server-empty strong {font-size:12px;}
+html.nova-theme .nova-server-empty small {font-size:10px;color:#dfc5ec;}
+html.nova-theme .nova-server-list-row {
+  display:flex;gap:7px;align-items:center;min-height:54px;padding:8px 0;
+  border-bottom:1px solid rgba(241,208,255,.19);
+}
+html.nova-theme .nova-server-row-info {flex:1;display:flex;flex-direction:column;gap:4px;min-width:0;}
+html.nova-theme .nova-server-row-info strong,
+html.nova-theme .nova-server-row-info small {overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+html.nova-theme .nova-server-row-info strong {font-size:12px;}
+html.nova-theme .nova-server-row-info small {font-size:10px;}
+html.nova-theme .nova-server-copy-action,
+html.nova-theme .nova-server-icon-action {
+  border:0;color:#f8eaff;background:rgba(174,125,215,.15);
+  border-radius:7px;padding:5px 7px;font-size:11px;
+}
+html.nova-theme .nova-server-icon-action {font-size:17px;}
+html.nova-theme .nova-server-quick p {font-size:11px;line-height:1.4;margin:4px 0 13px;}
+html.nova-theme .nova-server-quick-controls {display:flex;align-items:stretch;gap:7px;}
+html.nova-theme .nova-server-quick-controls input {min-width:0;width:100%;padding:10px 11px;font-size:12px;}
+html.nova-theme .nova-server-quick-controls .nova-button {padding:10px 12px;white-space:nowrap;}
+html.nova-theme .nova-server-save-quick {
+  background:transparent;border:0;color:#e9c5ff;font-size:11px;
+  margin-top:10px;padding:6px 0;text-decoration:underline;
+}
+html.nova-theme .nova-server-disclaimer {font-size:10px;color:#e0c7ec!important;}
+@media(max-width:1040px) {
+  html.nova-theme .nova-server-grid {grid-template-columns:1fr;}
+  html.nova-theme .nova-home-tiles {gap:8px!important;}
+  html.nova-theme .nova-tile {padding:10px!important;}
+}
+@media(max-width:820px) {
+  html.nova-theme .app-contents,
+  html.nova-theme .app-grid-layout {--left-bar-width:74px!important;}
+  html.nova-theme .nova-sidebar {width:74px!important;padding:15px 6px!important;}
+  html.nova-theme .nova-auth-notice {right:10px!important;width:min(345px,calc(100vw - 90px))!important;}
+  html.nova-theme .nova-home-tiles {grid-template-columns:1fr!important;}
+  html.nova-theme .nova-tile {min-height:66px!important;}
+  html.nova-theme .nova-launch-row {flex-direction:column;}
+  html.nova-theme .nova-play {flex:0 0 58px!important;}
+}
+@media(max-height:650px) {
+  html.nova-theme .nova-home-center {min-height:255px;}
+  html.nova-theme .nova-home-logo {height:76px!important;width:76px!important;}
+  html.nova-theme .nova-home h1 {font-size:34px!important;}
+  html.nova-theme .nova-rule {margin:7px 0 10px!important;}
+  html.nova-theme .nova-home-tiles .nova-tile {min-height:72px!important;}
+}
+@media(prefers-reduced-motion:reduce) {
+  html.nova-theme .nova-auth-notice,
+  html.nova-theme .nova-page .nova-glass {transition:none!important;}
+}
