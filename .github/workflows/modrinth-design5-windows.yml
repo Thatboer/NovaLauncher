@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   build:
-    name: NOVA Design 5 Test 0.7 unsigned Windows x64
+    name: NOVA Design 5 Test 0.7 validated Windows x64
     runs-on: windows-2022
     timeout-minutes: 180
     env:
@@ -31,7 +31,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: NOVA-Design5-Windows-Test-07-${{ github.run_number }}
+          name: NOVA-Design5-Windows-Test-07-Validated-${{ github.run_number }}
           path: |
             out/*.exe
             out/*.sha256
