@@ -5,11 +5,15 @@
 <br /><br />
 
 <!-- NOVA_DOWNLOAD_START -->
-<a href="https://github.com/Thatboer/NovaLauncher/actions/runs/42855979348"><img src="assets/landing/download-windows.svg" alt="NOVA Launcher Windows download" width="350" /></a>
+<div align="center">
 
-**[Windows Test 0.6 build](https://github.com/Thatboer/NovaLauncher/actions/runs/42855979348)** · [All downloads](https://github.com/Thatboer/NovaLauncher/releases)
+<a href="https://github.com/Thatboer/NovaLauncher/releases/download/nova-design5-run-42855979348/NOVA-Launcher-Windows-Setup.exe"><img src="assets/landing/download-windows.svg" alt="Download latest NOVA Launcher Windows installer" width="350" /></a>
 
-The release publisher is being set up. The most recent Windows installer is currently under **Artifacts** on the successful build page.
+**[Direct .exe download](https://github.com/Thatboer/NovaLauncher/releases/download/nova-design5-run-42855979348/NOVA-Launcher-Windows-Setup.exe)** · [Release notes](https://github.com/Thatboer/NovaLauncher/releases/tag/nova-design5-run-42855979348) · [All releases](https://github.com/Thatboer/NovaLauncher/releases)
+
+**Newest successful build:** #3 · 2026-11-10 (UTC) · \`ab1b322fd\`
+
+</div>
 <!-- NOVA_DOWNLOAD_END -->
 
 <br />
@@ -30,7 +34,7 @@ The release publisher is being set up. The most recent Windows installer is curr
 ## 💜 Latest Windows build
 
 <!-- NOVA_STATUS_START -->
-✅ **Windows Test 0.6 build completed** on November 10, 2026. [View build](https://github.com/Thatboer/NovaLauncher/actions/runs/42855979348). The automatic release publisher is being configured.
+✅ **Build #3 passed** on 2026-11-10 (UTC). [View build details](https://github.com/Thatboer/NovaLauncher/actions/runs/42855979348). The download above is the newest verified uploaded installer.
 <!-- NOVA_STATUS_END -->
 
 The **download button at the top automatically updates after each successful Windows build**. Every passing installer gets its own GitHub Release, and the homepage shows its build number, date and direct download. If a build fails, the homepage reports that failure while keeping the previous working download.
