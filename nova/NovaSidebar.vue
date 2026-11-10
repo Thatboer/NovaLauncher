@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import logoUrl from './nova-logo.svg?url'
 import { useRoute, useRouter } from 'vue-router'
 const emit = defineEmits<{ create: []; settings: [] }>()
+const logoBroken = ref(false)
 const router = useRouter()
 const route = useRoute()
 const links = [
@@ -20,7 +22,7 @@ function navigate(id: string) {
 </script>
 <template>
   <aside class="nova-sidebar">
-    <div class="nova-side-brand"><img class="nova-side-logo" src="./nova-logo.svg" alt="" aria-hidden="true" /><span>Nova Launcher</span></div>
+    <div class="nova-side-brand"><img v-if="!logoBroken" class="nova-side-logo" :src="logoUrl" alt="" aria-hidden="true" @error="logoBroken = true"/><span v-else class="nova-small-logo-fallback" aria-hidden="true">N</span><span>Nova Launcher</span></div>
     <nav aria-label="Nova navigation">
       <button v-for="link in links" :key="link.id" :class="{ 'nova-active': active === link.id }" @click="navigate(link.id)">
         <span class="nova-nav-icon">{{ link.icon }}</span><span>{{ link.title }}</span>
