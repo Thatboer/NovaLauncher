@@ -80,10 +80,32 @@ function patchApp(value) {
     value.slice(wEnd)
   value = value.replace('\t\t\t<SurveyPopup />', '\t\t\t<!-- Nova does not load upstream survey promotions -->')
   value = value.replace("import SurveyPopup from '@/components/ui/SurveyPopup.vue'\n", '')
+  // Preserve the real connection check while keeping its notice out of
+  // the page layout. The old full-width Admonition pushed every Nova screen down.
+  const noticeStart = value.indexOf('\t\t\t<Admonition\n\t\t\t\tv-if="authUnreachable"')
+  const noticeEnd = value.indexOf('\t\t\t<HostingUpdateRequired', noticeStart)
+  if (noticeStart < 0 || noticeEnd < noticeStart) throw new Error('Auth warning position changed')
+  value = value.slice(0, noticeStart) + [
+    '\t\t\t<div v-if="authUnreachable && !novaAuthDismissed" class="nova-auth-notice" role="status">',
+    '\t\t\t\t<span aria-hidden="true" class="nova-auth-notice-icon">!</span>',
+    '\t\t\t\t<div class="nova-auth-notice-copy"><strong>Account check unavailable</strong>',
+    '\t\t\t\t\t<small>Minecraft authentication could not be checked. Your connection may still work.</small></div>',
+    '\t\t\t\t<button type="button" class="nova-auth-retry" @click="authServerQuery.refetch()">Retry</button>',
+    '\t\t\t\t<button type="button" class="nova-auth-dismiss" aria-label="Dismiss account notice" @click="novaAuthDismissed = true">×</button>',
+    '\t\t\t</div>',
+    '',
+  ].join('\n') + value.slice(noticeEnd)
+  const authEnd = 'let unlistenEditMenu'
+  if (!value.includes(authEnd)) throw new Error('Auth checker not found')
+  value = value.replace(authEnd, 'const novaAuthDismissed = ref(false)\n\n' + authEnd)
+  // This name scopes CSS only to instance creation; other functional dialogs remain intact.
+  const creationTag = '\t\t<CreationFlowModal\n'
+  if (value.split(creationTag).length !== 2) throw new Error('Creation dialog hook moved')
+  value = value.replace(creationTag, creationTag + '\t\t\tclass="nova-create-instance-modal"\n')
   const end = value.lastIndexOf('</script>')
   if (end < 0) throw new Error('App.vue missing script block')
   const handlers = "\nfunction novaOpenSettings() { settingsActions.openSettings() }\n" +
-    "onMounted(() => { document.title = 'Nova Launcher | Test 0.6'; document.documentElement.classList.add('nova-theme'); document.addEventListener('nova-open-settings', novaOpenSettings) })\n" +
+    "onMounted(() => { document.title = 'NOVA Launcher | Test 0.7'; document.documentElement.classList.add('nova-theme'); document.addEventListener('nova-open-settings', novaOpenSettings) })\n" +
     "onUnmounted(() => { document.documentElement.classList.remove('nova-theme'); document.removeEventListener('nova-open-settings', novaOpenSettings) })\n"
   return value.slice(0, end) + handlers + value.slice(end)
 }
@@ -108,15 +130,19 @@ function patchTitle(value) {
   const start = value.indexOf('<template>')
   const end = value.lastIndexOf('</template>')
   if (start < 0 || end < start) throw new Error('Title bar template missing')
+  // Import the SVG through Vite so the titlebar never renders a literal @/ URL.
+  const logoImportAnchor = "import WindowControls from './window-controls.vue'"
+  mustContain(value, logoImportAnchor, 'titlebar WindowControls')
+  value = value.replace(logoImportAnchor, logoImportAnchor + "\nimport novaLogoUrl from '@/features/nova/nova-logo.svg?url'")
   const nova = [
     '<template>',
     '  <header data-tauri-drag-region class="app-title-bar nova-titlebar">',
     '    <div data-tauri-drag-region class="nova-titlebar-brand">',
-    '      <img class="nova-titlebar-logo" src="@/features/nova/nova-logo.svg" alt="" aria-hidden="true" />',
+    '      <img class="nova-titlebar-logo" :src="novaLogoUrl" alt="" aria-hidden="true" />',
     '      <strong data-tauri-drag-region>Nova Launcher</strong>',
     '      <span class="nova-bar-divider" data-tauri-drag-region></span>',
     '      <small data-tauri-drag-region>Minecraft Java Launcher</small>',
-    '      <span class="nova-test-label" data-tauri-drag-region>DESIGN #5 · TEST 0.6</span>',
+    '      <span class="nova-test-label" data-tauri-drag-region>DESIGN #5 · TEST 0.7</span>',
     '    </div>',
     '    <WindowControls />',
     '  </header>',
@@ -135,7 +161,7 @@ function patchSplash(value) {
   <Transition name="splash-fade" @after-leave="onAfterLeave">
     <div v-if="!doneLoading" class="splash-screen nova-splash" :class="theme.active + '-mode'">
       <div class="app-logo-wrapper nova-splash-content" data-tauri-drag-region>
-        <img class="nova-splash-logo" src="@/features/nova/nova-logo.svg" alt="NOVA" />
+        <img class="nova-splash-logo" :src="novaLogoUrl" alt="NOVA" />
         <strong class="nova-splash-label">NOVA LAUNCHER</strong>
         <small class="nova-splash-subtitle">Minecraft Java Edition</small>
         <ProgressBar class="loading-bar" :progress="Math.min(loadingProgress, 100)" />
@@ -146,6 +172,9 @@ function patchSplash(value) {
 </template>`
   // Existing loading state, progression, and lifecycle remain untouched.
   value = replacement + value.slice(end + '</template>'.length)
+  const splashImportAnchor = "import { useTheme } from '@/composables/use-theme.ts'"
+  mustContain(value, splashImportAnchor, 'splash theme import')
+  value = value.replace(splashImportAnchor, splashImportAnchor + "\nimport novaLogoUrl from '@/features/nova/nova-logo.svg?url'")
   return value + `
 <style scoped>
 .nova-splash {
@@ -229,6 +258,6 @@ config.app.windows[0].title = 'Nova Launcher'
 config.bundle.shortDescription = 'NOVA Minecraft Java Launcher'
 config.bundle.longDescription = 'Independent Nova Launcher for Minecraft Java Edition.'
 config.plugins['deep-link'].desktop.schemes = ['nova-launcher']
-config.version = '1.0.5' // Native NOVA settings and verified local assets, above 1.0.4
+config.version = '1.0.6' // Design 5 visual correction above previous 1.0.5
 fs.writeFileSync(configPath, JSON.stringify(config, null, 2))
 console.log('Applied Nova UI and Windows app identity. Original files backed up.')
