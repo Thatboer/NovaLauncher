@@ -37,7 +37,7 @@ function patchApp(value) {
   const end = value.lastIndexOf('</script>')
   if (end < 0) throw new Error('App.vue missing script block')
   const handlers = "\nfunction novaOpenSettings() { settingsActions.openSettings() }\n" +
-    "onMounted(() => { document.title = 'Nova Launcher | Test 0.2'; document.documentElement.classList.add('nova-theme'); document.addEventListener('nova-open-settings', novaOpenSettings) })\n" +
+    "onMounted(() => { document.title = 'Nova Launcher | Test 0.3'; document.documentElement.classList.add('nova-theme'); document.addEventListener('nova-open-settings', novaOpenSettings) })\n" +
     "onUnmounted(() => { document.documentElement.classList.remove('nova-theme'); document.removeEventListener('nova-open-settings', novaOpenSettings) })\n"
   return value.slice(0, end) + handlers + value.slice(end)
 }
@@ -60,7 +60,7 @@ function patchIndex(value) {
 function patchTitle(value) {
   const logo = '<TextLogo class="h-7 w-auto shrink-0 text-contrast pointer-events-none" />'
   mustContain(value, logo, 'title bar logo')
-  value = value.replace(logo, '<span class="nova-app-title" data-tauri-drag-region>✧ NOVA LAUNCHER <small class="nova-test-label">TEST 0.2</small></span>')
+  value = value.replace(logo, '<span class="nova-app-title" data-tauri-drag-region><span class="nova-app-mark">N</span> NOVA LAUNCHER <small class="nova-test-label">TEST 0.3</small></span>')
   mustContain(value, 'TextLogo, ', 'title bar logo import')
   value = value.replace('TextLogo, ', '')
   return value
@@ -97,6 +97,6 @@ config.productName = 'Nova Launcher'
 config.mainBinaryName = 'NovaLauncher'
 config.identifier = 'gg.novasmp.novalauncher'
 config.app.windows[0].title = 'Nova Launcher'
-config.version = '1.0.1' // Above prior 1.0.0-local so the NSIS update installs cleanly
+config.version = '1.0.2' // Above prior 1.0.0-local so the NSIS update installs cleanly
 fs.writeFileSync(configPath, JSON.stringify(config, null, 2))
 console.log('Applied Nova UI and Windows app identity. Original files backed up.')
