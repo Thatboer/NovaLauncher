@@ -11,7 +11,7 @@
 
 **[Direct .exe download](https://github.com/Thatboer/NovaLauncher/releases/download/nova-design5-run-42855979348/NOVA-Launcher-Windows-Setup.exe)** · [Release notes](https://github.com/Thatboer/NovaLauncher/releases/tag/nova-design5-run-42855979348) · [All releases](https://github.com/Thatboer/NovaLauncher/releases)
 
-**Newest successful build:** #3 · 2026-11-10 (UTC) · \`ab1b322fd\`
+**Newest successful build:** #3 · 2026-11-10 (UTC) · `ab1b322fd`
 
 </div>
 <!-- NOVA_DOWNLOAD_END -->
