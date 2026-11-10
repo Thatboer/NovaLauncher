@@ -214,7 +214,7 @@ function openSettings() {
   <main class="nova-page">
     <section v-if="page === 'home'" class="nova-home">
       <div class="nova-home-center">
-        <div class="nova-star">✧</div>
+        <div class="nova-star" aria-label="Nova Launcher logo"><span>N</span></div>
         <h1>Nova Launcher</h1>
         <p>A sleek and modern way to play Minecraft.</p>
         <div class="nova-rule"><span>✦</span></div>
