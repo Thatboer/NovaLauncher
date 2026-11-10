@@ -130,9 +130,9 @@ function patchSplash(value) {
   const start = value.indexOf('<template>')
   const end = value.indexOf('</template>', start)
   if (start !== 0 || end < 0) throw new Error('Unexpected splash template')
-  const replacement = \`<template>
+  const replacement = `<template>
   <Transition name="splash-fade" @after-leave="onAfterLeave">
-    <div v-if="!doneLoading" class="splash-screen nova-splash" :class="\`\${theme.active}-mode\`">
+    <div v-if="!doneLoading" class="splash-screen nova-splash" :class="theme.active + '-mode'">
       <div class="app-logo-wrapper nova-splash-content" data-tauri-drag-region>
         <img class="nova-splash-logo" src="@/features/nova/nova-logo.svg" alt="NOVA" />
         <strong class="nova-splash-label">NOVA LAUNCHER</strong>
@@ -142,10 +142,10 @@ function patchSplash(value) {
       </div>
     </div>
   </Transition>
-</template>\`
+</template>`
   // Existing loading state, progression, and lifecycle remain untouched.
   value = replacement + value.slice(end + '</template>'.length)
-  return value + \`
+  return value + `
 <style scoped>
 .nova-splash {
   background: radial-gradient(circle at 50% 35%, #663a91, #1c0c31 68%, #090514);
@@ -156,7 +156,7 @@ function patchSplash(value) {
 .nova-splash-subtitle { margin-bottom: 20px; color: #e6c8f9; font: 13px Inter, system-ui, sans-serif; }
 .nova-splash-message { color: #dfc5ef; font-size: 12px; }
 .nova-splash .loading-bar { --color-brand: #bd7af9; }
-</style>\`
+</style>`
 }
 function patchHtml(value) {
   mustContain(value, '<title>Modrinth App</title>', 'upstream HTML title')
