@@ -1,59 +1,44 @@
-# Nova Launcher 🌸
+# Nova Launcher v2 🌸
 
-A custom Minecraft Java launcher interface based on the open-source Modrinth App.
+An independent Minecraft Java Edition desktop launcher, under active development, built on the open-source **X Minecraft Launcher (XMCL)** engine.
 
-## Current status
-**Windows CI installer builds succeed, but account login, Minecraft launching, update behavior and final UI are not yet verified on Windows.**
+> **Current branch:** `xmcl-rebuild`. The old Modrinth-based Nova Launcher is preserved in `main` as a working backup. These are separate implementations.
 
-- Design direction: approved #5, soft lavender glass with cherry grove.
-- Six Nova UI screens: Home, Installations, Profiles, Mods, Servers, Settings.
-- NovaSMP is permanently featured as `novasmp.gg` in the Servers page. Other servers can be added, edited, removed and saved locally. Minecraft `servers.dat` synchronization is not implemented yet.
-- The Play action connects to Modrinth's existing game launcher API.
-- Mods, Modpacks, Shaders and Resource Packs now browse using Nova UI and real Modrinth search results. For mods, shaders and resource packs, installation requests go to the existing backend dependency resolver; Windows runtime testing is still needed.
-- Microsoft authentication is reused from upstream but **has not been tested for this fork**.
-- Original Nova icons are generated as part of the Windows build.
-- Current Home scene uses a sharp AVIF cherry-grove illustration. It still does **not** match every detail of approved Design #5, especially the lake and portal.
+## Target design
 
-## Building without installing developer tools
-GitHub Actions' **Nova Launcher Windows test installer** workflow (manual `workflow_dispatch`) and GitLab's legacy `.gitlab-ci.yml` build from these repository files. It checks out the pinned upstream Modrinth commit, applies \`nova/apply.mjs\`, and attempts to produce an unsigned Windows NSIS installer.
+The approved **Nova Design #5** is the visual contract: cherry-grove lake and portal scenery, lavender glass, pink-purple Play button, original Nova branding and six consistent pages. See `docs/NOVA_DESIGN5_SPEC.md`.
 
-**Do not upload a ZIP.** The full Nova overlay is now tracked directly in the \`nova/\` folder.
+- **Home:** original Nova shell, real installed instances and XMCL launch controller
+- **Installations:** real installed Minecraft Java versions, search, loader filtering and create dialog
+- **Profiles:** real XMCL Microsoft authentication and account manager, with Nova layout
+- **Mods:** real Modrinth catalog search. Direct install is **not yet integrated** in this new engine.
+- **Servers:** permanent NovaSMP (`novasmp.gg`) plus persistent local favorites. Does **not yet** merge `servers.dat` or implement one-click joining.
+- **Settings:** real saved glass opacity, About/Credits; advanced game memory/Java controls still to be integrated.
 
-The build is available under **Build → Pipelines**. If GitLab refuses to create any jobs and requests **identity verification**, only the GitLab account owner can complete that requirement; see the banner in GitLab.
+This is not production-ready. The first XMCL-v2 renderer compiled successfully on GitHub Actions. The Windows x64 unsigned preview workflow is separate; its build outcome and actual Minecraft launch/authentication must be tested before claiming they work.
 
-## Source and attribution
-Upstream Modrinth repository: https://github.com/modrinth/code
+## Source layout
 
-Upstream source revision: \`f73010ae0809813120a16b733a3d0bfd23f76e24\`
+- `xmcl/NovaShell.vue`: six native Nova screens and XMCL engine integration
+- `xmcl/nova.css`: original lavender/pink frosted-glass styling
+- `xmcl/apply.mjs`: non-destructive renderer overlay onto pinned upstream source
+- `xmcl/prepare-windows.mjs`: isolated Nova app identity, no XMCL publishing or auto-update behavior
+- `xmcl/generate_windows_icons.py`: original purple Nova icon art for Windows
+- `.github/workflows/xmcl-renderer.yml`: Linux Vue/TypeScript + renderer verification
+- `.github/workflows/xmcl-windows.yml`: Windows x64 portable unsigned ZIP preview
 
-The Modrinth App is licensed under GPL-3.0-only. Distributing a modified Nova application requires complying with that license and making the corresponding modified source available.
+Builds fetch XMCL at the **exact pinned commit**
+`4aee50aaf1cb7ee741ba995c87017f4dbe85584e`.
+Do not automatically switch to upstream latest without rechecking compatibility.
 
-**Not ready for public distribution:** Windows build verification, licensed background screenshots, Minecraft account authentication, Minecraft launching, full replacement of upstream secondary pages, and Nova-specific updater/signing are not yet complete.
+## Build/verification
 
-## Nova sources
-- \`nova/NovaPage.vue\`: six primary screens and functional hooks
-- \`nova/NovaSidebar.vue\`: custom navigation
-- \`nova/nova-theme.css\`: reusable glassmorphism styles
-- \`nova/cherry-placeholder.svg\`: temporary illustrated scene
-- \`nova/apply.mjs\`: non-destructive overlay onto pinned Modrinth source
-- \`nova/generate_icon.py\`: original Nova Windows icons
-- \`nova/build-windows.ps1\`: Windows CI build script
+The GitHub Actions tab provides two workflows. The Windows artifact is a **portable ZIP preview**, not a signed installer. A renderer-only artifact cannot be launched as a Windows app.
 
-This project is unofficial and is not affiliated with Mojang or Microsoft.
+Before sharing publicly: verify all six screens, Minecraft account login, instance creation, Java installation and launch, no hidden XMCL/Modrinth styling, update isolation, Windows startup and app data isolation. Use only a properly licensed background asset matching Design #5. Existing cherry-grove art is not yet the exact lake/portal composition.
 
-## GitHub Actions migration (Thatboer)
+## Licensing and upstream credit
 
-- Source mirror target: https://github.com/Thatboer/NovaLauncher (create the repository before migration).
-- Build workflow: `.github/workflows/windows-test.yml` (manual only, no push builds).
-- Open **Actions → Nova Launcher Windows test installer → Run workflow** to start one Windows build after repository migration.
-- Successful job artifacts contain an **unsigned test** `.exe` and its SHA256 checksum. They are not a production release.
-- The original GitLab project (https://gitlab.com/novasmp1/novalauncher) remains a backup and historical CI reference.
-- The source migration does not migrate GitLab pipeline history or earlier installer artifacts automatically.
+XMCL source and libraries are maintained by the [Voxelum project](https://github.com/Voxelum/x-minecraft-launcher) under the **MIT license**. The fetched original repository includes its `LICENSE` and copyright notices, which must be retained when distributing the modified application. The Modrinth catalog API is used as a content provider; it is not the launcher base.
 
-## Latest changes: UI test 0.3
-
-- Nova-branded N logo replaces the placeholder star on Home, sidebar and title bar.
-- Official NovaSMP server stays pinned and cannot be removed from the Servers page.
-- User-favorite Java servers persist locally through launcher restarts, with Add / Edit / Remove / Copy controls.
-- Mods browsing uses original Nova views rather than routing into the upstream Browse and Project screens. Mod installation requests use the upstream dependency resolver. A resolved install plan launches an asynchronous background transfer, so Nova reports **started**, not **completed**, until event integration is added.
-- Windows runtime validation, Minecraft in-game server-list synchronization, complete Design #5 imagery, modpack creation and update/signing are still pending.
+Nova Launcher is unofficial and not affiliated with Mojang Studios, Microsoft, XMCL or Modrinth.
