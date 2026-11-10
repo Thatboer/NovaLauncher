@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { injectNotificationManager } from '@modrinth/ui'
-import { run } from '@/helpers/instance'
+import { install_project_with_dependencies, run, type ResolveContentRequest } from '@/helpers/instance'
 import type { GameInstance } from '@/helpers/types'
 import AccountsCard from '@/features/minecraft-accounts/accounts-card.vue'
 
@@ -14,6 +14,7 @@ type ModHit = {
   author: string
   downloads: number
 }
+type ModKind = 'mod' | 'modpack' | 'shader' | 'resourcepack'
 const props = defineProps<{ instances: GameInstance[] }>()
 const emit = defineEmits<{ create: []; settings: [] }>()
 const route = useRoute()
@@ -30,6 +31,11 @@ const modHits = ref<ModHit[]>([])
 const modLoading = ref(false)
 const modError = ref('')
 const modLoaded = ref(false)
+const modKind = ref<ModKind>('mod')
+const modSelected = ref<ModHit | null>(null)
+const modInstalling = ref('')
+const modStatus = ref('')
+const modStatusIsError = ref(false)
 
 // The official NovaSMP server is a bundled entry, never user-removable.
 const NOVASMP_ADDRESS = 'novasmp.gg'
@@ -131,10 +137,11 @@ async function launch(instance?: GameInstance) {
 async function searchMods() {
   modLoading.value = true
   modError.value = ''
+  modSelected.value = null
   try {
     const url = new URL('https://api.modrinth.com/v2/search')
     url.searchParams.set('query', modQuery.value)
-    url.searchParams.set('facets', '[["project_type:mod"]]')
+    url.searchParams.set('facets', JSON.stringify([['project_type:' + modKind.value]]))
     url.searchParams.set('limit', '16')
     const response = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } })
     if (!response.ok) throw new Error('Modrinth returned HTTP ' + response.status)
@@ -150,11 +157,53 @@ async function searchMods() {
 watch(page, (id) => {
   if (id === 'mods' && !modLoaded.value && !modLoading.value) void searchMods()
 }, { immediate: true })
-function browse(type: string) {
-  void router.push('/browse/' + type)
+function selectModKind(kind: ModKind) {
+  if (modKind.value === kind) return
+  modKind.value = kind
+  modHits.value = []
+  modLoaded.value = false
+  modSelected.value = null
+  modStatus.value = ''
+  void searchMods()
 }
 function openMod(hit: ModHit) {
-  void router.push('/project/' + encodeURIComponent(hit.project_id))
+  modSelected.value = hit
+  modStatus.value = ''
+}
+async function installMod(hit: ModHit) {
+  modStatus.value = ''
+  modStatusIsError.value = false
+  const instance = current.value
+  if (!instance || instance.install_stage !== 'installed' || instance.quarantined) {
+    modStatus.value = 'Choose a fully installed Minecraft profile first.'
+    modStatusIsError.value = true
+    return
+  }
+  if (modKind.value === 'modpack') {
+    modStatus.value = 'Modpacks need their own installation.'
+    modStatusIsError.value = true
+    return
+  }
+  modInstalling.value = hit.project_id
+  try {
+    const request: ResolveContentRequest = {
+      project_id: hit.project_id,
+      content_type: modKind.value,
+      selected: {
+        game_versions: [instance.game_version],
+        ...(modKind.value === 'mod' && String(instance.loader).toLowerCase() !== 'vanilla'
+          ? { loaders: [String(instance.loader).toLowerCase()] }
+          : {}),
+      },
+    }
+    await install_project_with_dependencies(instance.id, request)
+    modStatus.value = hit.title + ' installed in ' + instance.name + '.'
+  } catch (error) {
+    modStatusIsError.value = true
+    modStatus.value = error instanceof Error ? error.message : String(error)
+  } finally {
+    modInstalling.value = ''
+  }
 }
 function openSettings() {
   emit('settings')
@@ -191,7 +240,7 @@ function openSettings() {
       </div>
       <div class="nova-home-tiles">
         <button class="nova-glass nova-tile" @click="navigate('profiles')"><b>♙</b><span><strong>Profiles</strong><small>Accounts and game profiles</small></span><em>›</em></button>
-        <button class="nova-glass nova-tile" @click="navigate('mods')"><b>✧</b><span><strong>Mods</strong><small>Browse real Modrinth projects</small></span><em>›</em></button>
+        <button class="nova-glass nova-tile" @click="navigate('mods')"><b>✧</b><span><strong>Mods</strong><small>Discover Minecraft content</small></span><em>›</em></button>
         <button class="nova-glass nova-tile" @click="navigate('servers')"><b>▤</b><span><strong>Servers</strong><small>Your Minecraft connections</small></span><em>›</em></button>
       </div>
     </section>
@@ -202,7 +251,7 @@ function openSettings() {
           <h1>{{ ({ installations: 'Installations', profiles: 'Profiles', mods: 'Mods', servers: 'Servers', settings: 'Settings' } as Record<string,string>)[page] }}</h1>
           <p v-if="page === 'installations'">Manage Minecraft versions and modded instances.</p>
           <p v-else-if="page === 'profiles'">Use your existing Microsoft Minecraft account.</p>
-          <p v-else-if="page === 'mods'">Real mod icons, descriptions, authors and download counts from Modrinth.</p>
+          <p v-else-if="page === 'mods'">Browse mods, modpacks, shaders and resources without leaving Nova.</p>
           <p v-else-if="page === 'servers'">Favorite servers and the NovaSMP community.</p>
           <p v-else>Customize your Minecraft experience.</p>
         </div>
@@ -233,18 +282,53 @@ function openSettings() {
       </div>
 
       <div v-else-if="page === 'mods'" class="nova-content-stack">
-        <form class="nova-mod-search" @submit.prevent="searchMods">
-          <input v-model="modQuery" class="nova-glass" placeholder="Search Minecraft mods..." aria-label="Search Minecraft mods" />
-          <button class="nova-button nova-primary" :disabled="modLoading" type="submit">{{ modLoading ? 'Searching…' : 'Search' }}</button>
-          <button class="nova-button nova-soft" type="button" @click="browse('modpack')">Modpacks</button>
-          <button class="nova-button nova-soft" type="button" @click="browse('shader')">Shaders</button>
-        </form>
-        <p v-if="modError" class="nova-error">{{ modError }}</p>
-        <div class="nova-mod-grid">
-          <button v-for="mod in modHits" :key="mod.project_id" class="nova-glass nova-mod" @click="openMod(mod)">
-            <img v-if="mod.icon_url" :src="mod.icon_url" :alt="mod.title + ' icon'" loading="lazy"/>
-            <div class="nova-mod-text"><strong>{{ mod.title }}</strong><small>by {{ mod.author }} · {{ mod.downloads.toLocaleString() }} downloads</small><p>{{ mod.description }}</p><span>View details and install ↗</span></div>
+        <div class="nova-kind-switcher" role="group" aria-label="Minecraft content type">
+          <button v-for="kind in (['mod', 'modpack', 'shader', 'resourcepack'] as ModKind[])" :key="kind" class="nova-glass nova-kind-tab" :class="{ 'nova-kind-selected': modKind === kind }" @click="selectModKind(kind)">
+            {{ ({ mod: 'Mods', modpack: 'Modpacks', shader: 'Shaders', resourcepack: 'Resource Packs' } as Record<ModKind,string>)[kind] }}
           </button>
+        </div>
+        <form class="nova-mod-search" @submit.prevent="searchMods">
+          <input v-model="modQuery" class="nova-glass" placeholder="Find Minecraft mods and other content..." aria-label="Search Minecraft content" />
+          <button class="nova-button nova-primary" :disabled="modLoading" type="submit">{{ modLoading ? 'Searching…' : 'Search' }}</button>
+        </form>
+        <div class="nova-glass nova-mod-install-target">
+          <div><span class="nova-mod-target-label">TARGET INSTALLATION</span><small>Mods are installed using the existing Minecraft backend.</small></div>
+          <select v-model="selected" aria-label="Target Minecraft installation">
+            <option v-if="!props.instances.length" value="">No installations yet</option>
+            <option v-for="instance in props.instances" :key="instance.id" :value="instance.id">{{ instance.name }} · {{ instance.game_version }} · {{ instance.loader }}</option>
+          </select>
+          <button class="nova-button nova-soft" @click="navigate('installations')">Manage</button>
+        </div>
+        <p v-if="modError" class="nova-error" role="alert">{{ modError }}</p>
+        <p v-if="modStatus" :class="modStatusIsError ? 'nova-error' : 'nova-server-notice'" role="status">{{ modStatus }}</p>
+        <p v-if="modLoading" class="nova-mod-loading" role="status">Searching Minecraft content…</p>
+        <div v-if="modSelected" class="nova-glass nova-mod-focused">
+          <img v-if="modSelected.icon_url" :src="modSelected.icon_url" :alt="modSelected.title + ' icon'" class="nova-mod-focused-icon" />
+          <div class="nova-mod-focused-details">
+            <span class="nova-eyebrow">PROJECT DETAILS</span>
+            <h2>{{ modSelected.title }}</h2>
+            <p class="nova-mod-author">by {{ modSelected.author }} · {{ modSelected.downloads.toLocaleString() }} downloads</p>
+            <p>{{ modSelected.description }}</p>
+            <div class="nova-server-buttons">
+              <button v-if="modKind !== 'modpack'" class="nova-button nova-primary" :disabled="!!modInstalling || !current || current.install_stage !== 'installed' || current.quarantined" @click="installMod(modSelected)">
+                {{ modInstalling === modSelected.project_id ? 'Installing…' : 'Install with dependencies' }}
+              </button>
+              <span v-else class="nova-modpack-notice">Modpacks need a separate Minecraft installation.</span>
+              <button class="nova-button nova-soft" @click="modSelected = null">Close</button>
+            </div>
+          </div>
+        </div>
+        <div v-if="modLoaded && !modHits.length && !modLoading" class="nova-glass nova-empty">No matching projects found.</div>
+        <div class="nova-mod-grid">
+          <article v-for="mod in modHits" :key="mod.project_id" class="nova-glass nova-mod">
+            <img v-if="mod.icon_url" :src="mod.icon_url" :alt="mod.title + ' icon'" loading="lazy"/>
+            <div class="nova-mod-text">
+              <strong>{{ mod.title }}</strong>
+              <small>by {{ mod.author }} · {{ mod.downloads.toLocaleString() }} downloads</small>
+              <p>{{ mod.description }}</p>
+              <button class="nova-button nova-soft" @click="openMod(mod)">View details</button>
+            </div>
+          </article>
         </div>
       </div>
 
