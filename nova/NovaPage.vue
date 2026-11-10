@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { injectNotificationManager } from '@modrinth/ui'
 import { install_project_with_dependencies, run, type ResolveContentRequest } from '@/helpers/instance'
 import type { GameInstance } from '@/helpers/types'
-import AccountsCard from '@/features/minecraft-accounts/accounts-card.vue'
+import NovaAccounts from './NovaAccounts.vue'
 
 type ModHit = {
   project_id: string
@@ -269,16 +269,7 @@ function openSettings() {
       </div>
 
       <div v-else-if="page === 'profiles'" class="nova-content-stack">
-        <div class="nova-glass nova-detail">
-          <h2>Minecraft account</h2>
-          <p>Sign in or switch accounts using the existing secure Minecraft account manager.</p>
-          <AccountsCard />
-        </div>
-        <div class="nova-glass nova-detail">
-          <h2>Game profiles</h2>
-          <p>Each Minecraft installation keeps its own mods and configuration. Manage them under Installations.</p>
-          <button class="nova-button nova-primary" @click="navigate('installations')">View installations</button>
-        </div>
+        <NovaAccounts @installations="navigate('installations')" />
       </div>
 
       <div v-else-if="page === 'mods'" class="nova-content-stack">
