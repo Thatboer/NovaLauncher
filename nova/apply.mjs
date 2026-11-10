@@ -127,13 +127,14 @@ function patchIndex(value) {
 }
 function patchTitle(value) {
   mustContain(value, '<TextLogo class="h-7 w-auto shrink-0 text-contrast pointer-events-none" />', 'legacy title logo')
-  const start = value.indexOf('<template>')
-  const end = value.lastIndexOf('</template>')
-  if (start < 0 || end < start) throw new Error('Title bar template missing')
-  // Import the SVG through Vite so the titlebar never renders a literal @/ URL.
+  // Import the SVG through Vite before calculating replacement offsets.
+  // Adding imports changes the string length, so using older offsets corrupts <script>.
   const logoImportAnchor = "import WindowControls from './window-controls.vue'"
   mustContain(value, logoImportAnchor, 'titlebar WindowControls')
   value = value.replace(logoImportAnchor, logoImportAnchor + "\nimport novaLogoUrl from '@/features/nova/nova-logo.svg?url'")
+  const start = value.indexOf('<template>')
+  const end = value.lastIndexOf('</template>')
+  if (start < 0 || end < start) throw new Error('Title bar template missing')
   const nova = [
     '<template>',
     '  <header data-tauri-drag-region class="app-title-bar nova-titlebar">',
