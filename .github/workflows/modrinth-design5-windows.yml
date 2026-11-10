@@ -1,4 +1,4 @@
-name: Nova Design 5 Windows test installer
+name: NOVA Launcher Windows test installer
 
 on:
   push:
@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   build:
-    name: Unsigned Nova Design 5 Windows x64 installer
+    name: Unsigned NOVA-only Windows x64 installer
     runs-on: windows-2022
     timeout-minutes: 180
     env:
@@ -31,7 +31,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: NovaLauncher-Design5-Windows-Test-04-${{ github.run_number }}
+          name: NOVA-Only-Windows-Test-05-${{ github.run_number }}
           path: |
             out/*.exe
             out/*.sha256
