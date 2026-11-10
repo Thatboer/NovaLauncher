@@ -1,0 +1,39 @@
+name: Nova Design 5 Windows test installer
+
+on:
+  push:
+    branches: [modrinth-design5]
+    paths:
+      - '.github/workflows/modrinth-design5-windows.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nova-design5-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Unsigned Nova Design 5 Windows x64 installer
+    runs-on: windows-2022
+    timeout-minutes: 180
+    env:
+      CI: "true"
+    steps:
+      - name: Check out Nova Design 5 source
+        uses: actions/checkout@v4
+      - name: Build from pinned upstream using Nova overlay
+        shell: powershell
+        run: .\nova\build-windows.ps1
+      - name: Upload unsigned installer and checksum
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NovaLauncher-Design5-Windows-Test-04-${{ github.run_number }}
+          path: |
+            out/*.exe
+            out/*.sha256
+          if-no-files-found: error
+          retention-days: 14
