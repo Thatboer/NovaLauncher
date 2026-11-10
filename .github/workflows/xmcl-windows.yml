@@ -1,0 +1,100 @@
+name: Nova XMCL v2 unsigned Windows preview
+
+on:
+  push:
+    branches: [xmcl-rebuild]
+    paths:
+      - '.github/workflows/xmcl-windows.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nova-xmcl-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-preview:
+    name: Windows x64 portable preview
+    runs-on: windows-2022
+    timeout-minutes: 180
+    env:
+      XMCL_SHA: 4aee50aaf1cb7ee741ba995c87017f4dbe85584e
+      CI: "true"
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      NODE_OPTIONS: --max-old-space-size=6144
+    steps:
+      - name: Checkout Nova v2 code
+        uses: actions/checkout@v4
+
+      - name: Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.10.0
+
+      - name: Checkout pinned XMCL backend
+        shell: bash
+        run: |
+          git init -q xmcl-source
+          git -C xmcl-source remote add origin https://github.com/Voxelum/x-minecraft-launcher.git
+          git -C xmcl-source fetch --depth 1 origin "$XMCL_SHA"
+          git -C xmcl-source checkout -q --detach FETCH_HEAD
+          test "$(git -C xmcl-source rev-parse HEAD)" = "$XMCL_SHA"
+
+      - name: Apply Nova UI and isolated Windows branding
+        run: |
+          node xmcl/apply.mjs xmcl-source
+          node xmcl/prepare-windows.mjs xmcl-source
+
+      - name: Generate original Nova Windows icon
+        shell: powershell
+        run: |
+          python -m pip install --disable-pip-version-check Pillow
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python xmcl/generate_windows_icons.py xmcl-source
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Install pinned XMCL dependencies
+        working-directory: xmcl-source
+        shell: powershell
+        run: |
+          pnpm install --frozen-lockfile
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Validate new Nova renderer
+        working-directory: xmcl-source
+        shell: powershell
+        run: |
+          pnpm --prefix=xmcl-keystone-ui check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          pnpm --prefix=xmcl-keystone-ui build
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Package unsigned Windows x64 ZIP
+        working-directory: xmcl-source
+        shell: powershell
+        env:
+          BUILD_TARGET: zip
+          NODE_ENV: production
+        run: |
+          pnpm --prefix=xmcl-electron-app build
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: List generated Windows packages
+        shell: powershell
+        run: |
+          Get-ChildItem -Path xmcl-source/xmcl-electron-app/build/output -Filter *.zip -File | Select-Object FullName,Length
+
+      - name: Upload portable unsigned Nova preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nova-v2-XMCL-Windows-Portable-${{ github.run_number }}
+          path: xmcl-source/xmcl-electron-app/build/output/NovaLauncher-v2-*.zip
+          if-no-files-found: error
+          retention-days: 14
