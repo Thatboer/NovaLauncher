@@ -296,3 +296,29 @@ html.nova-theme .app-title-bar :is(button,svg) {color:#f5e5ff;}
   html.nova-theme .nova-home-tiles {grid-template-columns:1fr;}
   html.nova-theme .nova-titlebar {padding-left:11px;}
 }
+
+/* NOVA-only artwork and user-controlled server home, without SMP branding. */
+html.nova-theme .nova-home-logo {
+  display:block; width:124px; height:124px; object-fit:contain;
+  margin:0 0 10px; border-radius:50%;
+  filter:drop-shadow(0 0 23px rgba(180,75,250,.55));
+}
+html.nova-theme .nova-side-logo {
+  width:39px; height:39px; flex-shrink:0; object-fit:contain;
+  border-radius:50%; filter:drop-shadow(0 0 9px rgba(194,92,253,.52));
+}
+html.nova-theme .nova-titlebar-logo {
+  width:30px; height:30px; flex-shrink:0; object-fit:contain;
+  border-radius:50%; filter:drop-shadow(0 0 5px rgba(182,75,251,.43));
+}
+html.nova-theme .nova-servers-intro {
+  padding:26px; min-height:180px;
+  display:flex; flex-direction:column; align-items:flex-start;
+  background:linear-gradient(125deg,rgba(116,68,154,.67),rgba(200,132,212,.35));
+}
+html.nova-theme .nova-servers-intro h2 {font-size:29px; margin:9px 0 5px;}
+html.nova-theme .nova-servers-intro p {font-size:13px; opacity:.95; margin:0 0 18px;}
+html.nova-theme .nova-custom-servers {max-width:1050px;}
+@media(max-height:740px) {
+  html.nova-theme .nova-home-logo {width:92px;height:92px;margin-bottom:3px;}
+}
