@@ -197,7 +197,7 @@ async function installMod(hit: ModHit) {
       },
     }
     await install_project_with_dependencies(instance.id, request)
-    modStatus.value = hit.title + ' installed in ' + instance.name + '.'
+    modStatus.value = 'Started installing ' + hit.title + ' into ' + instance.name + '. Check the installation status before playing.'
   } catch (error) {
     modStatusIsError.value = true
     modStatus.value = error instanceof Error ? error.message : String(error)
