@@ -5,6 +5,9 @@ import { injectNotificationManager } from '@modrinth/ui'
 import { install_project_with_dependencies, run, type ResolveContentRequest } from '@/helpers/instance'
 import type { GameInstance } from '@/helpers/types'
 import NovaAccounts from './NovaAccounts.vue'
+import NovaSettings from './NovaSettings.vue'
+import sceneUrl from './cherry-grove.avif?url'
+import logoUrl from './nova-logo.svg?url'
 
 type ModHit = {
   project_id: string
@@ -16,6 +19,29 @@ type ModHit = {
 }
 type ModKind = 'mod' | 'modpack' | 'shader' | 'resourcepack'
 const props = defineProps<{ instances: GameInstance[] }>()
+const sceneBroken = ref(false)
+const logoBroken = ref(false)
+const sceneCss = computed(() => ({
+  '--nova-scene-url': sceneBroken.value ? 'none' : 'url("' + sceneUrl + '")',
+}))
+function validateImage() {
+  const image = new Image()
+  image.onload = () => { sceneBroken.value = false }
+  image.onerror = () => { sceneBroken.value = true }
+  image.src = sceneUrl
+}
+onMounted(() => {
+  validateImage()
+  try {
+    const root = document.documentElement
+    const opacity = Number(localStorage.getItem('nova.appearance.opacity.v1'))
+    const blur = Number(localStorage.getItem('nova.appearance.blur.v1'))
+    if (opacity >= 25 && opacity <= 85) root.style.setProperty('--nova-glass-opacity', String(opacity / 100))
+    if (blur >= 0 && blur <= 24) root.style.setProperty('--nova-inner-blur', blur + 'px')
+    root.classList.toggle('nova-motion', localStorage.getItem('nova.appearance.motion.v1') !== 'false')
+    root.classList.toggle('nova-reduced-motion', localStorage.getItem('nova.appearance.reduced-motion.v1') === 'true')
+  } catch { /* The bundled defaults remain available when storage is blocked. */ }
+})
 const emit = defineEmits<{ create: []; settings: [] }>()
 const route = useRoute()
 const router = useRouter()
@@ -208,10 +234,10 @@ function openSettings() {
 </script>
 
 <template>
-  <main class="nova-page">
+  <main class="nova-page" :style="sceneCss" :class="{ 'nova-scene-unavailable': sceneBroken }">
     <section v-if="page === 'home'" class="nova-home">
       <div class="nova-home-center">
-        <img class="nova-home-logo" src="./nova-logo.svg" alt="NOVA" />
+        <img v-if="!logoBroken" class="nova-home-logo" :src="logoUrl" alt="NOVA" @error="logoBroken = true"/><span v-else class="nova-logo-fallback" aria-label="NOVA">NOVA</span>
         <h1>Nova Launcher</h1>
         <p>A sleek and modern way to play Minecraft.</p>
         <div class="nova-rule"><span>✦</span></div>
@@ -352,13 +378,8 @@ function openSettings() {
         <p class="nova-server-disclaimer">Saved Nova favorites are local to this launcher. Minecraft's in-game server list is not modified.</p>
       </div>
 
-      <div v-else class="nova-content-stack">
-        <div class="nova-glass nova-detail">
-          <h2>Launcher settings</h2>
-          <p>Memory, Java, download options, appearance, and account preferences use the established settings underneath the Nova interface.</p>
-          <button class="nova-button nova-primary" @click="openSettings">Open launcher settings</button>
-        </div>
-        <div class="nova-glass nova-detail"><h2>Appearance</h2><p>Cherry Grove Glass · Lavender · Frosted panels · Reduced-motion friendly</p></div>
+      <div v-else class="nova-content-stack nova-settings-content">
+        <NovaSettings @profiles="navigate('profiles')" />
       </div>
     </section>
   </main>
