@@ -49,6 +49,8 @@ jobs:
           const index = load('pages/Index.vue')
           const theme = load('features/nova/nova-theme.css')
           const account = load('features/nova/NovaAccounts.vue')
+          const settings = load('features/nova/NovaSettings.vue')
+          const sidebar = load('features/nova/NovaSidebar.vue')
           const nova = load('features/nova/NovaPage.vue')
           const splash = load('components/ui/SplashScreen.vue')
           const html = fs.readFileSync('modrinth-upstream/apps/app-frontend/index.html','utf8')
@@ -72,6 +74,14 @@ jobs:
             htmlNova: html.includes('<title>Nova Launcher</title>') && !html.includes('<title>Modrinth App</title>'),
             tauriNova: appConfig.productName === 'Nova Launcher' && appConfig.mainBinaryName === 'NovaLauncher',
             nsisNova: !nsis.includes('An old installation of the Modrinth App'),
+            nativeSettings: nova.includes('<NovaSettings') && settings.includes('await get()') && settings.includes('await set(next)'),
+            functionalAppearance: settings.includes('--nova-glass-opacity') && settings.includes('localStorage.setItem('),
+            nativeInstalledMods: nova.includes('get_content_items') && nova.includes('toggle_disable_project'),
+            instanceFilters: nova.includes('visibleInstances') && nova.includes('nova-filter-pills'),
+            viteSceneAsset: nova.includes("cherry-grove.avif?url") && theme.includes('--nova-scene-url'),
+            viteLogoAsset: nova.includes("nova-logo.svg?url") && sidebar.includes("nova-logo.svg?url"),
+            defaultNoProviderBrand: !nova.includes('Modrinth returned HTTP'),
+            oldSettingsButtonRemoved: !nova.includes('Open launcher settings'),
           }
           console.log(checks)
           if (Object.values(checks).some(v => !v)) process.exit(1)
