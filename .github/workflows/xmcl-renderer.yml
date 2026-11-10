@@ -1,0 +1,61 @@
+name: Nova XMCL v2 UI validation
+
+on:
+  push:
+    branches: [xmcl-rebuild]
+    paths:
+      - 'xmcl/**'
+      - '.github/workflows/xmcl-renderer.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nova-xmcl-renderer-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  renderer:
+    name: Validate Nova UI against pinned XMCL
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    env:
+      XMCL_SHA: 4aee50aaf1cb7ee741ba995c87017f4dbe85584e
+    steps:
+      - name: Checkout Nova overlay
+        uses: actions/checkout@v4
+      - name: Configure Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.10.0
+      - name: Fetch pinned XMCL source
+        shell: bash
+        run: |
+          git init -q xmcl-source
+          git -C xmcl-source remote add origin https://github.com/Voxelum/x-minecraft-launcher.git
+          git -C xmcl-source fetch --depth 1 origin "$XMCL_SHA"
+          git -C xmcl-source checkout -q --detach FETCH_HEAD
+          test "$(git -C xmcl-source rev-parse HEAD)" = "$XMCL_SHA"
+      - name: Apply Nova v2 replacement interface
+        run: node xmcl/apply.mjs xmcl-source
+      - name: Install pinned XMCL dependencies
+        working-directory: xmcl-source
+        run: pnpm install --frozen-lockfile
+      - name: Check Vue/TypeScript
+        working-directory: xmcl-source
+        run: pnpm --prefix=xmcl-keystone-ui check
+      - name: Compile native Nova renderer
+        working-directory: xmcl-source
+        run: pnpm --prefix=xmcl-keystone-ui build
+      - name: Upload renderer validation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nova-v2-XMCL-renderer-${{ github.run_number }}
+          path: xmcl-source/xmcl-keystone-ui/dist/
+          if-no-files-found: error
+          retention-days: 7
