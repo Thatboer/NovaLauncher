@@ -207,7 +207,7 @@ async function searchMods() {
     url.searchParams.set('facets', JSON.stringify([['project_type:' + modKind.value]]))
     url.searchParams.set('limit', '16')
     const response = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } })
-    if (!response.ok) throw new Error('Modrinth returned HTTP ' + response.status)
+    if (!response.ok) throw new Error('The content catalog returned HTTP ' + response.status)
     const result: { hits?: ModHit[] } = await response.json()
     modHits.value = result.hits ?? []
     modLoaded.value = true
@@ -313,10 +313,10 @@ function openSettings() {
         <div>
           <h1>{{ ({ installations: 'Installations', profiles: 'Profiles', mods: 'Mods', servers: 'Servers', settings: 'Settings' } as Record<string,string>)[page] }}</h1>
           <p v-if="page === 'installations'">Manage Minecraft versions and modded instances.</p>
-          <p v-else-if="page === 'profiles'">Use your existing Microsoft Minecraft account.</p>
-          <p v-else-if="page === 'mods'">Browse mods, modpacks, shaders and resources without leaving Nova.</p>
+          <p v-else-if="page === 'profiles'">Your Minecraft accounts, skins and personal settings.</p>
+          <p v-else-if="page === 'mods'">Search, install and manage content for your Minecraft installation.</p>
           <p v-else-if="page === 'servers'">Keep your favorite multiplayer servers ready to join.</p>
-          <p v-else>Customize your Minecraft experience.</p>
+          <p v-else>Customize your launcher, game, downloads and appearance.</p>
         </div>
         <button v-if="page === 'installations'" class="nova-button nova-primary" @click="emit('create')">+ New installation</button>
         <button v-if="page === 'mods'" class="nova-button nova-primary" @click="modTab = 'discover'; void searchMods()">+ Add mod</button>
