@@ -82,6 +82,15 @@ jobs:
             viteLogoAsset: nova.includes("nova-logo.svg?url") && sidebar.includes("nova-logo.svg?url"),
             defaultNoProviderBrand: !nova.includes('Modrinth returned HTTP'),
             oldSettingsButtonRemoved: !nova.includes('Open launcher settings'),
+            noFullWidthAuthWarning: app.includes('nova-auth-notice') && !app.includes('v-if="authUnreachable"\\n\\t\\t\\t\\ttype="warning"'),
+            authCheckStillPresent: app.includes('await check_reachable()') && app.includes('authServerQuery.refetch()'),
+            noBrokenTitlebarIconUrl: title.includes(':src="novaLogoUrl"') && !title.includes('src="@/features/nova/nova-logo.svg"'),
+            noBrokenSplashIconUrl: splash.includes(':src="novaLogoUrl"') && !splash.includes('src="@/features/nova/nova-logo.svg"'),
+            creationDialogScoped: app.includes('class="nova-create-instance-modal"') && theme.includes('.nova-create-instance-modal'),
+            sharperGlassTheme: theme.includes('NOVA v0.7 FINAL VISUAL PASS'),
+            functionalGlassSlider: theme.includes('--nova-glass-opacity:inherit!important'),
+            structuredServerLayout: nova.includes('nova-server-grid') && nova.includes('nova-server-quick-controls'),
+            noForcedServer: !nova.includes('novasmp.gg'),
           }
           console.log(checks)
           if (Object.values(checks).some(v => !v)) process.exit(1)
