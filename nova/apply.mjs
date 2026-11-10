@@ -34,10 +34,52 @@ function patchApp(value) {
   if (rightStart < 0 || rightEnd < rightStart) throw new Error('Could not locate old right sidebar')
   value = value.slice(0, rightStart) + value.slice(rightEnd + '\n\t\t/>'.length)
 
+  // Nova does not display advertising. Disable ad initialization and the CMP
+  // event handler itself, not only its visible popup.
+  const replaceExact = (before, after, name) => {
+    if (value.split(before).length !== 2) throw new Error('Unexpected upstream ' + name)
+    value = value.replace(before, after)
+  }
+  replaceExact(
+    "useAppEvent('ads_consent_required', handleAdsConsentRequired, appEvents)",
+    "// Independent Nova client: advertising service and consent popup disabled.",
+    'ad consent event'
+  )
+  replaceExact(
+    "const showAd = computed(\n\t() => sidebarVisible.value && !hasPlus.value && credentials.value !== undefined,\n)",
+    "const showAd = computed(() => false)",
+    'ad visibility'
+  )
+  replaceExact(
+    "const adConsentAvailable = computed(() => credentials.value !== undefined && !hasPlus.value)",
+    "const adConsentAvailable = computed(() => false)",
+    'ad consent availability'
+  )
+  replaceExact(
+    "try {\n\t\thandleAdsConsentRequired(await should_show_ads_consent_popup())\n\t} catch (error) {\n\t\thandleError(error)\n\t}",
+    "// Ad-consent setup removed because Nova does not request or display ads.",
+    'startup consent call'
+  )
+  const cStart = value.indexOf('function handleAdsConsentRequired(required) {')
+  const cEnd = value.indexOf('async function setupApp() {', cStart)
+  if (cStart < 0 || cEnd < cStart) throw new Error('Ad consent handler moved')
+  value = value.slice(0, cStart) + value.slice(cEnd)
+  const mStart = value.indexOf('\tadsConsentTitle: {')
+  const mEnd = value.indexOf('\thome: {', mStart)
+  if (mStart < 0 || mEnd < mStart) throw new Error('Ad consent messages moved')
+  value = value.slice(0, mStart) + value.slice(mEnd)
+  const wStart = value.indexOf('watch(\n\t[stateInitialized, showAd, adConsentAvailable],')
+  const wEnd = value.indexOf("onMounted(() => {\n\tinvoke('show_window')", wStart)
+  if (wStart < 0 || wEnd < wStart) throw new Error('Ad initialization watcher moved')
+  value = value.slice(0, wStart) +
+    "watch(stateInitialized, (ready) => {\n\tif (ready) void hide_ads_window(true).catch(handleError)\n}, { immediate: true })\n\n" +
+    value.slice(wEnd)
+  value = value.replace('\t\t\t<SurveyPopup />', '\t\t\t<!-- Nova does not load upstream survey promotions -->')
+  value = value.replace("import SurveyPopup from '@/components/ui/SurveyPopup.vue'\n", '')
   const end = value.lastIndexOf('</script>')
   if (end < 0) throw new Error('App.vue missing script block')
   const handlers = "\nfunction novaOpenSettings() { settingsActions.openSettings() }\n" +
-    "onMounted(() => { document.title = 'Nova Launcher | Test 0.3'; document.documentElement.classList.add('nova-theme'); document.addEventListener('nova-open-settings', novaOpenSettings) })\n" +
+    "onMounted(() => { document.title = 'Nova Launcher | Test 0.4'; document.documentElement.classList.add('nova-theme'); document.addEventListener('nova-open-settings', novaOpenSettings) })\n" +
     "onUnmounted(() => { document.documentElement.classList.remove('nova-theme'); document.removeEventListener('nova-open-settings', novaOpenSettings) })\n"
   return value.slice(0, end) + handlers + value.slice(end)
 }
@@ -58,13 +100,27 @@ function patchIndex(value) {
   return value.slice(0, templateStart) + novaTemplate + value.slice(templateEnd + '</template>'.length)
 }
 function patchTitle(value) {
-  const logo = '<TextLogo class="h-7 w-auto shrink-0 text-contrast pointer-events-none" />'
-  mustContain(value, logo, 'title bar logo')
-  value = value.replace(logo, '<span class="nova-app-title" data-tauri-drag-region><span class="nova-app-mark">N</span> NOVA LAUNCHER <small class="nova-test-label">TEST 0.3</small></span>')
-  mustContain(value, 'TextLogo, ', 'title bar logo import')
-  value = value.replace('TextLogo, ', '')
-  return value
+  mustContain(value, '<TextLogo class="h-7 w-auto shrink-0 text-contrast pointer-events-none" />', 'legacy title logo')
+  const start = value.indexOf('<template>')
+  const end = value.lastIndexOf('</template>')
+  if (start < 0 || end < start) throw new Error('Title bar template missing')
+  const nova = [
+    '<template>',
+    '  <header data-tauri-drag-region class="app-title-bar nova-titlebar">',
+    '    <div data-tauri-drag-region class="nova-titlebar-brand">',
+    '      <span class="nova-app-mark" data-tauri-drag-region>N</span>',
+    '      <strong data-tauri-drag-region>Nova Launcher</strong>',
+    '      <span class="nova-bar-divider" data-tauri-drag-region></span>',
+    '      <small data-tauri-drag-region>Minecraft Java Launcher</small>',
+    '      <span class="nova-test-label" data-tauri-drag-region>DESIGN #5 · TEST 0.4</span>',
+    '    </div>',
+    '    <WindowControls />',
+    '  </header>',
+    '</template>',
+  ].join('\n')
+  return value.slice(0, start) + nova + value.slice(end + '</template>'.length)
 }
+
 const changes = [
   [files.app, patchApp],
   [files.index, patchIndex],
@@ -83,7 +139,7 @@ for (const [relative, fn] of changes) {
 const dest = path.join(target, 'apps/app-frontend/src/features/nova')
 if (fs.existsSync(dest)) throw new Error('Nova components already present: ' + dest)
 fs.mkdirSync(dest, { recursive: true })
-for (const name of ['NovaPage.vue', 'NovaSidebar.vue', 'nova-theme.css', 'cherry-grove.avif']) {
+for (const name of ['NovaPage.vue', 'NovaSidebar.vue', 'NovaAccounts.vue', 'nova-theme.css', 'cherry-grove.avif']) {
   fs.copyFileSync(path.join(sourceDir, name), path.join(dest, name))
 }
 for (const item of staged) {
@@ -97,6 +153,6 @@ config.productName = 'Nova Launcher'
 config.mainBinaryName = 'NovaLauncher'
 config.identifier = 'gg.novasmp.novalauncher'
 config.app.windows[0].title = 'Nova Launcher'
-config.version = '1.0.2' // Above prior 1.0.0-local so the NSIS update installs cleanly
+config.version = '1.0.3' // Design #5 overhaul, above 1.0.2 test build
 fs.writeFileSync(configPath, JSON.stringify(config, null, 2))
 console.log('Applied Nova UI and Windows app identity. Original files backed up.')
