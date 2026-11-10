@@ -1,0 +1,196 @@
+name: Publish NOVA Windows builds to homepage
+
+# Lives on the default branch so the action can react to builds from
+# the modrinth-design5 development branch. The first push bootstraps from
+# already-successful build 42855979348; future runs are event driven.
+on:
+  workflow_run:
+    workflows: ["NOVA Launcher Windows test installer"]
+    branches: [modrinth-design5]
+    types: [completed]
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-nova-design5.yml'
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Successful/failed NOVA Windows run ID to publish (optional)'
+        required: false
+        default: '42855979348'
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: nova-landing-release-publisher
+  cancel-in-progress: false
+
+jobs:
+  publish-and-update:
+    if: github.repository == 'Thatboer/NovaLauncher'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      EVENT_TYPE: ${{ github.event_name }}
+      SOURCE_RUN_ID: ${{ github.event.workflow_run.id }}
+      MANUAL_RUN_ID: ${{ inputs.run_id }}
+    steps:
+      - name: Checkout repository landing page
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          ref: main
+
+      - name: Verify completed official NOVA build
+        id: verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_ID="${SOURCE_RUN_ID:-${MANUAL_RUN_ID:-42855979348}}"
+          [[ "$RUN_ID" =~ ^[0-9]+$ ]] || { echo "Invalid build ID"; exit 1; }
+          gh api "repos/$REPO/actions/runs/$RUN_ID" > build.json
+
+          jq -e '
+            .status == "completed" and
+            .head_branch == "modrinth-design5" and
+            .workflow_id == 412826182 and
+            (.event == "push" or .event == "workflow_dispatch") and
+            (.conclusion == "success" or .conclusion == "failure" or
+             .conclusion == "cancelled" or .conclusion == "timed_out")
+          ' build.json > /dev/null
+
+          if [[ "$EVENT_TYPE" == "workflow_run" ]]; then
+            [[ "${SOURCE_RUN_ID}" == "$RUN_ID" ]] || exit 1
+          fi
+
+          STATUS="$(jq -r '.conclusion' build.json)"
+          SHA="$(jq -r '.head_sha' build.json)"
+          RUN_NUMBER="$(jq -r '.run_number' build.json)"
+          BUILD_DATE="$(jq -r '.updated_at[:10]' build.json)"
+
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "number=$RUN_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "date=$BUILD_DATE" >> "$GITHUB_OUTPUT"
+          echo "Verified official NOVA Windows run #$RUN_NUMBER: $STATUS ($SHA)"
+
+      - name: Verify installer and checksum from GitHub Actions
+        if: steps.verify.outputs.status == 'success'
+        shell: bash
+        env:
+          RUN_ID: ${{ steps.verify.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p staging release
+          gh run download "$RUN_ID" --repo "$REPO" --dir staging
+
+          mapfile -d '' EXES < <(find staging -type f -iname '*.exe' -print0)
+          if [[ "${#EXES[@]}" -ne 1 ]]; then
+            echo "Expected exactly one Windows installer, got ${#EXES[@]}" >&2
+            exit 1
+          fi
+          EXE="${EXES[0]}"
+          HASH_FILE="$EXE.sha256"
+          test -s "$EXE"
+          test -s "$HASH_FILE"
+          test "$(stat -c%s "$EXE")" -gt 10000000
+          test "$(head -c 2 "$EXE")" = "MZ"
+
+          EXPECTED="$(head -c 64 "$HASH_FILE" | tr '[:upper:]' '[:lower:]')"
+          [[ "$EXPECTED" =~ ^[0-9a-f]{64}$ ]] || exit 1
+          ACTUAL="$(sha256sum "$EXE" | awk '{print $1}')"
+          if [[ "$EXPECTED" != "$ACTUAL" ]]; then
+            echo "Installer SHA256 does not match the build artifact" >&2
+            exit 1
+          fi
+          cp "$EXE" release/NOVA-Launcher-Windows-Setup.exe
+          (cd release && sha256sum NOVA-Launcher-Windows-Setup.exe > SHA256SUMS.txt)
+          echo "Verified $ACTUAL"
+
+      - name: Create a permanent preview release for this successful build
+        if: steps.verify.outputs.status == 'success'
+        shell: bash
+        env:
+          RUN_ID: ${{ steps.verify.outputs.run_id }}
+          RUN_NUMBER: ${{ steps.verify.outputs.number }}
+          RUN_SHA: ${{ steps.verify.outputs.sha }}
+          BUILD_DATE: ${{ steps.verify.outputs.date }}
+        run: |
+          set -euo pipefail
+          TAG="nova-design5-run-$RUN_ID"
+          if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
+            gh release view "$TAG" --repo "$REPO" --json assets \
+              --jq '.assets | any(.name == "NOVA-Launcher-Windows-Setup.exe")' | grep -qx true
+            echo "Release already exists and contains verified download."
+          else
+            cat > release/RELEASE-NOTES.md <<EOF
+          ## NOVA Launcher • Design #5 • Windows Build #$RUN_NUMBER
+
+          **Build completed:** $BUILD_DATE (UTC)
+          **Source:** [$RUN_SHA](https://github.com/$REPO/commit/$RUN_SHA)
+          **CI build:** https://github.com/$REPO/actions/runs/$RUN_ID
+
+          This is an unsigned Windows x64 **experimental test installer**.
+          Download **NOVA-Launcher-Windows-Setup.exe** below and install it.
+
+          This build passed automated compilation and SHA-256 verification.
+          Minecraft login, gameplay and final Design #5 screenshot fidelity still need hands-on Windows testing.
+          Back up important Minecraft data before testing.
+
+          NOVA is an independent project built from open-source Modrinth App code (GPL-3.0).
+          See the source and retained upstream copyright notices for licensing.
+          EOF
+            gh release create "$TAG" \
+              release/NOVA-Launcher-Windows-Setup.exe \
+              release/SHA256SUMS.txt \
+              --repo "$REPO" \
+              --target "$RUN_SHA" \
+              --title "NOVA Design #5 • Windows Build #$RUN_NUMBER" \
+              --notes-file release/RELEASE-NOTES.md \
+              --prerelease
+          fi
+          gh release view "$TAG" --repo "$REPO" --json url,assets \
+            --jq '{url, files: [.assets[].name]}'
+
+      - name: Update homepage download and build status
+        shell: bash
+        env:
+          RUN_ID: ${{ steps.verify.outputs.run_id }}
+          RUN_NUMBER: ${{ steps.verify.outputs.number }}
+          RUN_SHA: ${{ steps.verify.outputs.sha }}
+          BUILD_DATE: ${{ steps.verify.outputs.date }}
+          BUILD_STATUS: ${{ steps.verify.outputs.status }}
+        run: |
+          set -euo pipefail
+
+          # A delayed older event must not overwrite information from a newer
+          # already-completed build. GitHub lists workflows by run number.
+          LATEST_COMPLETED="$(gh api "repos/$REPO/actions/workflows/412826182/runs?branch=modrinth-design5&status=completed&per_page=25" \
+            --jq '[.workflow_runs[] | select(.status=="completed") | .id] | max // 0')"
+          if [[ "$LATEST_COMPLETED" -gt "$RUN_ID" ]]; then
+            echo "Newer completed Windows build exists; keeping newer homepage."
+            exit 0
+          fi
+
+          python3 .github/scripts/update_nova_landing.py \
+            --repo "$REPO" \
+            --run-id "$RUN_ID" \
+            --run-number "$RUN_NUMBER" \
+            --sha "$RUN_SHA" \
+            --date "$BUILD_DATE" \
+            --status "$BUILD_STATUS"
+          if git diff --quiet -- README.md; then
+            echo "Landing page already current."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add README.md
+          git commit -m "Update NOVA homepage for Windows Build #$RUN_NUMBER ($BUILD_STATUS)"
+          git push origin HEAD:main
