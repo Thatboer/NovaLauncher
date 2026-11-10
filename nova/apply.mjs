@@ -83,7 +83,7 @@ function patchApp(value) {
   const end = value.lastIndexOf('</script>')
   if (end < 0) throw new Error('App.vue missing script block')
   const handlers = "\nfunction novaOpenSettings() { settingsActions.openSettings() }\n" +
-    "onMounted(() => { document.title = 'Nova Launcher | Test 0.4'; document.documentElement.classList.add('nova-theme'); document.addEventListener('nova-open-settings', novaOpenSettings) })\n" +
+    "onMounted(() => { document.title = 'Nova Launcher | Test 0.6'; document.documentElement.classList.add('nova-theme'); document.addEventListener('nova-open-settings', novaOpenSettings) })\n" +
     "onUnmounted(() => { document.documentElement.classList.remove('nova-theme'); document.removeEventListener('nova-open-settings', novaOpenSettings) })\n"
   return value.slice(0, end) + handlers + value.slice(end)
 }
@@ -116,7 +116,7 @@ function patchTitle(value) {
     '      <strong data-tauri-drag-region>Nova Launcher</strong>',
     '      <span class="nova-bar-divider" data-tauri-drag-region></span>',
     '      <small data-tauri-drag-region>Minecraft Java Launcher</small>',
-    '      <span class="nova-test-label" data-tauri-drag-region>DESIGN #5 · TEST 0.4</span>',
+    '      <span class="nova-test-label" data-tauri-drag-region>DESIGN #5 · TEST 0.6</span>',
     '    </div>',
     '    <WindowControls />',
     '  </header>',
@@ -200,9 +200,21 @@ for (const [relative, fn] of changes) {
 const dest = path.join(target, 'apps/app-frontend/src/features/nova')
 if (fs.existsSync(dest)) throw new Error('Nova components already present: ' + dest)
 fs.mkdirSync(dest, { recursive: true })
-for (const name of ['NovaPage.vue', 'NovaSidebar.vue', 'NovaAccounts.vue', 'nova-theme.css', 'nova-logo.svg', 'cherry-grove.avif']) {
+for (const name of ['NovaPage.vue', 'NovaSidebar.vue', 'NovaAccounts.vue', 'NovaSettings.vue', 'nova-theme.css', 'nova-logo.svg', 'cherry-grove.avif']) {
   fs.copyFileSync(path.join(sourceDir, name), path.join(dest, name))
 }
+// Confirm image files really exist in the fork and contain recognizable formats.
+const sceneFile = path.join(dest, 'cherry-grove.avif')
+const sceneBytes = fs.readFileSync(sceneFile)
+const imageHeader = sceneBytes.subarray(4, 24).toString('ascii')
+if (sceneBytes.length < 1024 || !imageHeader.includes('avif')) {
+  throw new Error('NOVA scenery is missing or is not a valid AVIF image')
+}
+const logoFile = path.join(dest, 'nova-logo.svg')
+if (!fs.readFileSync(logoFile, 'utf8').includes('<svg')) {
+  throw new Error('NOVA logo SVG is missing or malformed')
+}
+console.log('Verified NOVA scenery (' + sceneBytes.length + ' bytes) and logo assets.')
 for (const item of staged) {
   fs.writeFileSync(item.full + '.nova-original', item.original, 'utf8')
   fs.writeFileSync(item.full, item.changed, 'utf8')
@@ -217,6 +229,6 @@ config.app.windows[0].title = 'Nova Launcher'
 config.bundle.shortDescription = 'NOVA Minecraft Java Launcher'
 config.bundle.longDescription = 'Independent Nova Launcher for Minecraft Java Edition.'
 config.plugins['deep-link'].desktop.schemes = ['nova-launcher']
-config.version = '1.0.4' // NOVA-only branding; above 1.0.3 test build
+config.version = '1.0.5' // Native NOVA settings and verified local assets, above 1.0.4
 fs.writeFileSync(configPath, JSON.stringify(config, null, 2))
 console.log('Applied Nova UI and Windows app identity. Original files backed up.')
