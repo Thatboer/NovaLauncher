@@ -1,0 +1,124 @@
+/* Nova Launcher Design #5, XMCL-engine rebuild. Everything is scoped to Nova. */
+:root { --nova-plum:#473052; --nova-purple:#9b4dff; --nova-lavender:#c69aef; --nova-pink:#f7c5eb; }
+.nova-root { --v-theme-primary:155,77,255 !important; --v-theme-secondary:198,154,239 !important; --v-theme-success:155,77,255 !important; color:#fff !important; background:#6b518e !important; }
+.nova-shell,.nova-shell * { box-sizing:border-box; }
+.nova-shell { --nova-glass-alpha:.65; display:flex; flex-direction:column; overflow:hidden; height:100vh; width:100%; font-family:Inter,'Segoe UI',system-ui,sans-serif; color:white; background:#5d4775; }
+.nova-shell button,.nova-shell input,.nova-shell select { font:inherit; }
+.nova-shell button { cursor:pointer; }
+.nova-shell button:focus-visible,.nova-shell input:focus-visible,.nova-shell select:focus-visible,.nova-shell a:focus-visible { outline:2px solid #fff; outline-offset:3px; }
+.nova-shell button:disabled { cursor:not-allowed; opacity:.52; }
+.nova-titlebar { flex:0 0 42px; display:flex; align-items:center; justify-content:space-between; position:relative; z-index:7; padding-left:16px; background:linear-gradient(100deg,rgba(110,78,140,.95),rgba(168,132,192,.82) 60%,rgba(146,125,202,.91)); border-bottom:1px solid #ffffff45; -webkit-app-region:drag; user-select:none; }
+.nova-title-identity { display:flex; align-items:center; gap:11px; white-space:nowrap; }
+.nova-title-identity strong { font-size:15px; font-weight:750; }
+.nova-title-identity small { font-size:12px; color:#fffe; font-weight:450; }
+.nova-title-divider { height:20px; width:1px; background:#fff5; margin:0 4px; }
+.nova-small-mark { display:grid; place-items:center; width:27px; height:27px; border-radius:8px; color:#fff; font-size:20px; font-weight:950; font-style:italic; background:linear-gradient(150deg,#f9d9ff,#9e56e9 70%); box-shadow:0 0 12px #9e50de76; }
+.nova-window-controls { display:flex; align-self:stretch; align-items:stretch; -webkit-app-region:no-drag; }
+.nova-window-controls button { background:transparent; border:0; color:#fff; width:44px; font-size:24px; }
+.nova-window-controls button:hover { background:#ffffff30; }
+.nova-window-controls .nova-window-close:hover { background:#ac3154; }
+.nova-layout { flex:1; display:flex; min-height:0; }
+.nova-side { width:214px; flex:0 0 214px; position:relative; z-index:2; display:flex; flex-direction:column; padding:18px 10px 15px; overflow:auto; background:linear-gradient(160deg,rgba(86,50,104,.75),rgba(118,81,140,.72) 55%,rgba(180,121,160,.53)); backdrop-filter:blur(25px); border-right:1px solid #ffffff46; box-shadow:5px 0 22px #42245742; }
+.nova-side-logo { display:flex; align-items:center; gap:9px; margin:6px 9px 26px; font-size:17px; font-weight:740; white-space:nowrap; }
+.nova-side-mark { display:grid; place-items:center; flex-shrink:0; width:36px; height:36px; border-radius:11px; background:linear-gradient(145deg,#f2c8fd,#9646d7); box-shadow:0 0 17px #edbefeb5; font-weight:950; font-size:27px; font-style:italic; }
+.nova-navigation { display:flex; flex-direction:column; gap:5px; }
+.nova-navigation button { display:flex; gap:13px; align-items:center; width:100%; min-height:49px; border:1px solid transparent; padding:10px 13px; border-radius:12px; color:#fff; background:transparent; text-align:left; font-size:13px; font-weight:590; transition:background .16s ease,border-color .16s ease; }
+.nova-navigation button:hover { background:#efcbff3f; }
+.nova-navigation button.active { background:linear-gradient(125deg,#d8a5f7aa,#a05deaac); border-color:#fff9; box-shadow:inset 0 1px #fffc,0 4px 15px #49256f50; }
+.nova-navigation button:nth-last-child(1) { margin-top:14px; border-top:1px solid #ffffff35; }
+.nova-nav-icon { width:24px; text-align:center; font-size:24px; line-height:1; font-weight:450; flex-shrink:0; }
+.nova-side-bottom { margin-top:auto; padding:13px 8px 0; border-top:1px solid #ffffff44; }
+.nova-side-bottom small { font-size:9px; letter-spacing:.07em; color:#fff9; }
+.nova-main { flex:1; min-width:0; min-height:0; overflow:auto; position:relative; background:linear-gradient(180deg,rgba(45,26,73,.12),rgba(66,31,92,.08) 42%,rgba(52,30,86,.24)),url('./cherry-grove.avif') center 50% / cover fixed no-repeat; text-shadow:0 2px 9px #33204680; }
+.nova-main::before { content:''; position:fixed; inset:42px 0 0 214px; background:linear-gradient(90deg,#462b6021,transparent 48%,#8e578a25); pointer-events:none; }
+.nova-glass { border:1px solid #ffffff6f; border-radius:17px; background:linear-gradient(140deg,rgba(135,100,180,var(--nova-glass-alpha)),rgba(162,115,184,.42)); box-shadow:0 8px 26px #37204e42,inset 0 1px #ffffff4b; backdrop-filter:blur(19px) saturate(1.25); -webkit-backdrop-filter:blur(19px) saturate(1.25); }
+.nova-button { min-height:38px; border:1px solid #ffffff8b; border-radius:10px; padding:9px 16px; color:#fff; text-decoration:none; font-size:12px; font-weight:720; white-space:nowrap; }
+.nova-purple,.nova-filter.selected { background:linear-gradient(125deg,#d49cf8,#9f56e9); box-shadow:0 5px 17px #6534935c; }
+.nova-purple:hover,.nova-play-button:hover { filter:brightness(1.1); }
+.nova-outline { background:rgba(154,115,185,.35); }
+.nova-home { min-height:100%; display:flex; flex-direction:column; justify-content:space-between; gap:16px; padding:15px 22px 24px; }
+.nova-hero { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding-top:5px; }
+.nova-orbit-logo { height:100px; width:120px; display:grid; place-items:center; position:relative; margin:5px 0 7px; filter:drop-shadow(0 8px 12px #44207380); }
+.nova-orbit-logo span { font-size:102px; font-style:italic; letter-spacing:-.2em; padding-right:20px; line-height:1; font-weight:950; background:linear-gradient(155deg,#ffddff 7%,#efafff 45%,#8a40cd 95%); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(3px 2px 0 #5a3bba); }
+.nova-orbit-logo::after { content:''; width:114px; height:37px; border:4px solid #f9dafa; border-radius:50%; position:absolute; transform:rotate(-18deg); bottom:23px; left:9px; opacity:.85; box-shadow:0 0 12px #9c4fe4; }
+.nova-orbit-logo i { position:absolute; right:0; top:4px; color:#fff; font-size:35px; font-style:normal; }
+.nova-hero h1 { font-size:clamp(36px,4vw,62px); font-weight:780; letter-spacing:-.045em; line-height:1.06; margin:6px 0 3px; }
+.nova-hero > p { font-size:clamp(12px,1.3vw,18px); color:#ffe9ff; margin:0; }
+.nova-divider { display:flex; align-items:center; gap:14px; width:165px; margin:18px 0 22px; font-size:18px; color:#fff9; }
+.nova-divider::before,.nova-divider::after { content:''; flex:1; height:1px; background:#fff9; }
+.nova-play-row { display:flex; gap:12px; width:min(665px,100%); min-height:69px; }
+.nova-instance-picker { flex:1.4; min-width:0; display:flex; align-items:center; gap:14px; text-align:left; padding:11px 16px; }
+.nova-block-icon { display:grid; place-items:center; width:46px; height:46px; border-radius:11px; background:#b98adcaa; font-size:36px; }
+.nova-picker-content { min-width:0; flex:1; display:flex; flex-direction:column; gap:2px; }
+.nova-picker-content small { font-size:9px; letter-spacing:.12em; color:#fff9; font-weight:800; }
+.nova-picker-content select { appearance:auto; width:100%; color:#fff; font-size:15px; font-weight:750; outline:none; background:transparent; border:0; }
+.nova-picker-content select option { color:white; background:#6a4789; }
+.nova-picker-content > span { font-size:10px; color:#fffe; }
+.nova-play-button { flex:.75; min-width:154px; border:1px solid #fff9; border-radius:17px; color:white; background:linear-gradient(135deg,#d290ff,#9c4dff); box-shadow:0 0 19px #b457ff83,inset 0 1px #fff5; font-size:26px; font-weight:790; transition:filter .16s ease; }
+.nova-create-first { margin-top:15px; font-size:12px; padding:10px 17px; }
+.nova-home-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:13px; }
+.nova-home-card { min-height:94px; padding:14px; display:flex; align-items:center; gap:13px; text-align:left; color:white; }
+.nova-home-card > b { flex-shrink:0; display:grid; place-items:center; width:48px; height:48px; border-radius:11px; font-size:30px; background:linear-gradient(145deg,#d6aaf69c,#9655d18c); border:1px solid #fff6; }
+.nova-home-card span { flex:1; min-width:0; }
+.nova-home-card strong { display:block; font-size:15px; line-height:1.15; }
+.nova-home-card small { display:block; color:#f6dfff; font-size:10px; margin-top:5px; line-height:1.2; }
+.nova-home-card em { font-style:normal; font-size:26px; }
+.nova-page-content { padding:30px clamp(19px,3vw,43px) 45px; min-height:100%; background:linear-gradient(135deg,#765b9d2b,#b172ab14); }
+.nova-page-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:22px; }
+.nova-page-heading h1 { font-size:clamp(26px,2.9vw,37px); letter-spacing:-.03em; font-weight:760; margin:0 0 4px; }
+.nova-page-heading p { font-size:12px; color:#fff9; margin:0; }
+.nova-two-column { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(265px,1fr); gap:14px; align-items:start; }
+.nova-stack { display:flex; flex-direction:column; gap:14px; }
+.nova-panel { padding:19px; color:white; }
+.nova-panel h2 { font-size:18px; margin:0 0 12px; font-weight:740; }
+.nova-panel p { font-size:12px; line-height:1.6; color:#ffeefc; margin:0 0 15px; }
+.nova-panel a { color:#fff; font-weight:710; }
+.nova-account { display:flex; gap:18px; align-items:center; min-height:168px; }
+.nova-avatar { width:70px; height:70px; flex-shrink:0; display:grid; place-items:center; font-size:47px; border-radius:16px; border:1px solid #fff8; background:linear-gradient(140deg,#e5b1efa5,#915abbd4); }
+.nova-account small,.nova-featured > small { font-weight:770; font-size:10px; letter-spacing:.1em; color:#fff9; }
+.nova-account h2 { margin:7px 0 4px; }
+.nova-setting-line { display:flex; justify-content:space-between; gap:15px; align-items:center; border-bottom:1px solid #ffffff38; padding:13px 0; font-size:12px; }
+.nova-setting-line strong { font-size:12px; text-align:right; }
+.nova-setting-line small { display:block; margin-top:4px; opacity:.8; }
+.nova-tool-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:15px; }
+.nova-search { min-width:220px; flex:1; padding:12px 15px; color:#fff; background:#78529394; border-radius:11px; outline:none; font-size:13px; }
+.nova-search::placeholder,.nova-server-form input::placeholder { color:#fffd; opacity:.7; }
+.nova-filter-list { display:flex; gap:5px; flex-wrap:wrap; }
+.nova-filter { border:1px solid #fff6; border-radius:9px; padding:9px 11px; background:#a778c454; color:#fff; font-size:11px; text-transform:capitalize; }
+.nova-instance-item { display:flex; align-items:center; gap:13px; padding:13px 15px; margin-bottom:10px; min-height:66px; }
+.nova-instance-icon { display:grid; place-items:center; width:44px; height:44px; background:#cc9ae799; border:1px solid #fff6; border-radius:10px; font-size:26px; }
+.nova-instance-item > div { flex:1; min-width:0; }
+.nova-instance-item strong,.nova-instance-item small { display:block; }
+.nova-instance-item strong { font-size:14px; }
+.nova-instance-item small { font-size:11px; opacity:.86; margin-top:3px; }
+.nova-mod-search { display:flex; flex:1; align-items:stretch; gap:8px; }
+.nova-mod-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; }
+.nova-mod-card { display:flex; align-items:flex-start; gap:13px; padding:15px; }
+.nova-mod-card img { width:53px; height:53px; object-fit:cover; border-radius:10px; }
+.nova-mod-card > div { flex:1; min-width:0; }
+.nova-mod-card h3 { font-size:14px; margin:0 0 4px; }
+.nova-mod-card small { color:#f9e0ff; font-size:10px; }
+.nova-mod-card p { font-size:11px; line-height:1.45; margin:8px 0 12px; max-height:48px; overflow:hidden; }
+.nova-mod-card .nova-button { font-size:11px; min-height:31px; padding:6px 10px; }
+.nova-featured { min-height:268px; display:flex; flex-direction:column; background:linear-gradient(140deg,#9157c7ba,#9d69bd93); }
+.nova-featured h2 { font-size:30px; margin:5px 0 9px; }
+.nova-server-spacer { flex:1; }
+.nova-server-chip { width:max-content; background:#553179a9; border:1px solid #fff7; border-radius:9px; padding:6px 10px; font-size:12px; font-weight:700; }
+.nova-action-row { display:flex; gap:9px; align-items:center; flex-wrap:wrap; margin-top:14px; }
+.nova-server-entry { display:flex; align-items:center; justify-content:space-between; gap:7px; border-bottom:1px solid #ffffff36; padding:12px 0; font-size:12px; }
+.nova-server-entry:last-child { border-bottom:0; }
+.nova-server-entry small { display:block; opacity:.8; font-size:10px; margin-top:3px; }
+.nova-server-entry button { color:#fff; background:transparent; padding:4px 5px; border:0; font-size:11px; font-weight:700; }
+.nova-server-entry button:hover { text-decoration:underline; }
+.nova-server-form { display:flex; flex-direction:column; gap:10px; }
+.nova-server-form input { width:100%; background:#6c47928a; padding:11px 12px; color:#fff; }
+.nova-opacity { display:flex; align-items:center; gap:11px; }
+.nova-opacity input { accent-color:#d99dff; width:126px; }
+.nova-opacity span { min-width:31px; }
+.nova-empty { padding:28px; text-align:center; font-size:13px; }
+.nova-note { font-size:11px; color:#f6d7fb; margin:12px 0; }
+.nova-error { color:#fff; background:#6a294fcb; border:1px solid #ffb2db; border-radius:9px; padding:10px; margin:13px 0; font-size:12px; }
+@media(max-width:1030px) { .nova-side { width:177px; flex-basis:177px; } .nova-main::before { left:177px; } .nova-home { padding:12px 15px 16px; } .nova-home-card { gap:9px; padding:10px; } .nova-home-card > b { width:37px; height:37px; font-size:23px; } .nova-home-card small { font-size:9px; } .nova-two-column { grid-template-columns:minmax(0,1fr) minmax(215px,.75fr); } }
+@media(max-width:800px) { .nova-side { width:68px; flex-basis:68px; padding:12px 7px; } .nova-side-logo span:last-child,.nova-navigation button { font-size:0; } .nova-navigation button { justify-content:center; padding:10px; } .nova-nav-icon { font-size:24px; } .nova-side-bottom { display:none; } .nova-main::before { left:68px; } .nova-two-column { grid-template-columns:1fr; } .nova-title-identity small,.nova-title-divider { display:none; } .nova-home-cards { grid-template-columns:1fr; } .nova-home-card { min-height:60px; } .nova-home { min-height:680px; } }
+@media(max-height:570px) { .nova-orbit-logo { transform:scale(.75); height:70px; margin:0; } .nova-hero h1 { font-size:35px; } .nova-divider { margin:7px 0 12px; } .nova-home-card { min-height:65px; } .nova-home { padding-top:5px; } }
+@media(prefers-reduced-motion:reduce) { .nova-navigation button,.nova-play-button { transition:none; } .nova-glass { backdrop-filter:none; } }
