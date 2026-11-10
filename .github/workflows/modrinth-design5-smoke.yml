@@ -49,6 +49,11 @@ jobs:
           const index = load('pages/Index.vue')
           const theme = load('features/nova/nova-theme.css')
           const account = load('features/nova/NovaAccounts.vue')
+          const nova = load('features/nova/NovaPage.vue')
+          const splash = load('components/ui/SplashScreen.vue')
+          const html = fs.readFileSync('modrinth-upstream/apps/app-frontend/index.html','utf8')
+          const appConfig = JSON.parse(fs.readFileSync('modrinth-upstream/apps/app/tauri.conf.json','utf8'))
+          const nsis = fs.readFileSync('modrinth-upstream/apps/app/nsis/hooks.nsi','utf8')
           const checks = {
             noConsentStartup: !app.includes('handleAdsConsentRequired(await should_show_ads_consent_popup())'),
             noAdWindowInitialization: !app.includes('await init_ads_window('),
@@ -60,6 +65,13 @@ jobs:
             novaPages: index.includes('<NovaPage'),
             brandPurpleTokens: theme.includes('--color-brand: #bd7af9 !important'),
             noLegacyAccountCard: account.includes('get_default_user') && !account.includes('<AccountsCard'),
+            noSmpPrefill: !nova.includes('NOVASMP_ADDRESS') && !nova.includes('NovaSMP') && !nova.includes('novasmp.gg'),
+            novaGalaxyLogoCopied: fs.existsSync('modrinth-upstream/apps/app-frontend/src/features/nova/nova-logo.svg'),
+            novaHomeLogo: nova.includes('nova-logo.svg'),
+            novaSplashLogo: splash.includes('nova-logo.svg') && !splash.includes('id="modrinth-app-logo"'),
+            htmlNova: html.includes('<title>Nova Launcher</title>') && !html.includes('<title>Modrinth App</title>'),
+            tauriNova: appConfig.productName === 'Nova Launcher' && appConfig.mainBinaryName === 'NovaLauncher',
+            nsisNova: !nsis.includes('An old installation of the Modrinth App'),
           }
           console.log(checks)
           if (Object.values(checks).some(v => !v)) process.exit(1)
