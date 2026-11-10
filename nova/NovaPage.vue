@@ -86,6 +86,22 @@ const serverEditingId = ref('')
 const serverFormOpen = ref(false)
 const serverError = ref('')
 const serverNotice = ref('')
+const quickAddress = ref('')
+function copyQuickAddress() {
+  const value = quickAddress.value.trim()
+  if (!/^[a-z0-9.-]+(?::\d{1,5})?$/i.test(value)) {
+    serverError.value = 'Enter a valid Java server hostname, optionally with :port.'
+    return
+  }
+  serverError.value = ''
+  void copyServer(value)
+}
+function saveQuickServer() {
+  const address = quickAddress.value.trim()
+  editServer()
+  serverName.value = address.split(':')[0] || 'My server'
+  serverAddress.value = address
+}
 const addressKey = (address: string) => address.trim().toLowerCase()
 
 onMounted(() => {
@@ -315,7 +331,7 @@ function openSettings() {
           <p v-if="page === 'installations'">Manage Minecraft versions and modded instances.</p>
           <p v-else-if="page === 'profiles'">Your Minecraft accounts, skins and personal settings.</p>
           <p v-else-if="page === 'mods'">Search, install and manage content for your Minecraft installation.</p>
-          <p v-else-if="page === 'servers'">Keep your favorite multiplayer servers ready to join.</p>
+          <p v-else-if="page === 'servers'">Save your favorite multiplayer servers and connect faster.</p>
           <p v-else>Customize your launcher, game, downloads and appearance.</p>
         </div>
         <button v-if="page === 'installations'" class="nova-button nova-primary" @click="emit('create')">+ New installation</button>
@@ -429,35 +445,56 @@ function openSettings() {
       </div>
 
       <div v-else-if="page === 'servers'" class="nova-content-stack nova-custom-servers">
-        <div class="nova-servers-intro nova-glass">
-          <span class="nova-overline">YOUR MINECRAFT SERVERS</span>
-          <h2>My Servers</h2>
-          <p>Save the Java multiplayer servers you actually play. Nothing is added automatically.</p>
-          <button class="nova-button nova-primary" @click="editServer()">+ Add server</button>
+        <div class="nova-server-grid">
+          <div class="nova-server-main-column">
+            <section class="nova-glass nova-server-hero">
+              <span class="nova-overline">MULTIPLAYER · JAVA EDITION</span>
+              <div class="nova-server-hero-spacer"></div>
+              <div class="nova-server-hero-content">
+                <span class="nova-server-hero-mark" aria-hidden="true">✧</span>
+                <h2>Your next adventure</h2>
+                <p>Keep the Minecraft servers you love close by. Your favorites stay yours.</p>
+                <button class="nova-button nova-primary" @click="editServer()">+ Add a server</button>
+              </div>
+            </section>
+            <form v-if="serverFormOpen" class="nova-glass nova-server-form nova-server-form-panel" @submit.prevent="saveServer">
+              <label>SERVER NAME<input v-model="serverName" class="nova-glass" maxlength="50" placeholder="My Minecraft server" required /></label>
+              <label>JAVA ADDRESS<input v-model="serverAddress" class="nova-glass" maxlength="255" placeholder="example.com:25565" required /></label>
+              <div class="nova-server-buttons">
+                <button class="nova-button nova-primary" type="submit">{{ serverEditingId ? 'Save changes' : 'Save server' }}</button>
+                <button class="nova-button nova-soft" type="button" @click="serverFormOpen = false">Cancel</button>
+              </div>
+            </form>
+          </div>
+          <div class="nova-server-side-column">
+            <section class="nova-glass nova-server-list">
+              <div class="nova-panel-title"><h2>Saved servers</h2><span>{{ favoriteServers.length }} saved</span></div>
+              <div v-if="!favoriteServers.length" class="nova-server-empty">
+                <span aria-hidden="true">▤</span>
+                <strong>No saved servers yet</strong>
+                <small>Add a Java server and it will appear here.</small>
+              </div>
+              <div v-for="server in favoriteServers" :key="server.id" class="nova-server-list-row">
+                <div class="nova-server-row-info"><strong>{{ server.name }}</strong><small>{{ server.address }}</small></div>
+                <button type="button" class="nova-server-copy-action" @click="copyServer(server.address)">Copy ›</button>
+                <button type="button" class="nova-server-icon-action" :aria-label="'Edit '+server.name" @click="editServer(server)">✎</button>
+                <button type="button" class="nova-server-icon-action" :aria-label="'Remove '+server.name" @click="removeServer(server)">×</button>
+              </div>
+            </section>
+            <section class="nova-glass nova-server-quick">
+              <h2>Quick connect</h2>
+              <p>Copy an address into Minecraft Multiplayer, or save it for later.</p>
+              <div class="nova-server-quick-controls">
+                <input v-model="quickAddress" class="nova-glass" aria-label="Java server address" placeholder="Server address…" maxlength="255" @keyup.enter="copyQuickAddress"/>
+                <button class="nova-button nova-primary" @click="copyQuickAddress">Copy IP</button>
+              </div>
+              <button class="nova-server-save-quick" :disabled="!quickAddress.trim()" @click="saveQuickServer">+ Save this server</button>
+            </section>
+          </div>
         </div>
         <p v-if="serverError" class="nova-error" role="alert">{{ serverError }}</p>
         <p v-if="serverNotice" class="nova-server-notice" role="status">{{ serverNotice }}</p>
-        <form v-if="serverFormOpen" class="nova-glass nova-server-form" @submit.prevent="saveServer">
-          <label>SERVER NAME<input v-model="serverName" class="nova-glass" maxlength="50" placeholder="My Minecraft server" required /></label>
-          <label>JAVA ADDRESS<input v-model="serverAddress" class="nova-glass" maxlength="255" placeholder="example.com:25565" required /></label>
-          <div class="nova-server-buttons">
-            <button class="nova-button nova-primary" type="submit">{{ serverEditingId ? 'Save changes' : 'Save server' }}</button>
-            <button class="nova-button nova-soft" type="button" @click="serverFormOpen = false">Cancel</button>
-          </div>
-        </form>
-        <div v-if="!favoriteServers.length && !serverFormOpen" class="nova-glass nova-empty">
-          No servers saved yet. Add your first favorite above.
-        </div>
-        <div v-for="server in favoriteServers" :key="server.id" class="nova-glass nova-server-favorite">
-          <div class="nova-favorite-icon" aria-hidden="true">▤</div>
-          <div class="nova-favorite-details"><strong>{{ server.name }}</strong><code>{{ server.address }}</code></div>
-          <div class="nova-server-buttons">
-            <button class="nova-button nova-soft" @click="copyServer(server.address)">Copy IP</button>
-            <button class="nova-button nova-soft" @click="editServer(server)">Edit</button>
-            <button class="nova-button nova-soft" @click="removeServer(server)">Remove</button>
-          </div>
-        </div>
-        <p class="nova-server-disclaimer">Saved Nova favorites are local to this launcher. Minecraft's in-game server list is not modified.</p>
+        <p class="nova-server-disclaimer">NOVA saves only the servers you add. Your Minecraft multiplayer list is unchanged.</p>
       </div>
 
       <div v-else class="nova-content-stack nova-settings-content">
