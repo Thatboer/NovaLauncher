@@ -2,7 +2,8 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { injectNotificationManager } from '@modrinth/ui'
-import { install_project_with_dependencies, run, type ResolveContentRequest } from '@/helpers/instance'
+import { get_content_items, install_project_with_dependencies, run, toggle_disable_project, type ResolveContentRequest } from '@/helpers/instance'
+import type { ContentItem } from '@modrinth/ui'
 import type { GameInstance } from '@/helpers/types'
 import NovaAccounts from './NovaAccounts.vue'
 import NovaSettings from './NovaSettings.vue'
@@ -58,6 +59,18 @@ const modLoading = ref(false)
 const modError = ref('')
 const modLoaded = ref(false)
 const modKind = ref<ModKind>('mod')
+const modTab = ref<'installed' | 'discover'>('installed')
+const installedMods = ref<ContentItem[]>([])
+const installedBusy = ref(false)
+const installedToggle = ref('')
+const installedError = ref('')
+const instanceSearch = ref('')
+const instanceFilter = ref('all')
+const visibleInstances = computed(() => props.instances.filter(instance => {
+  const matchesName = (instance.name + ' ' + instance.game_version).toLowerCase().includes(instanceSearch.value.toLowerCase().trim())
+  const loader = String(instance.loader).toLowerCase()
+  return matchesName && (instanceFilter.value === 'all' || loader === instanceFilter.value)
+}))
 const modSelected = ref<ModHit | null>(null)
 const modInstalling = ref('')
 const modStatus = ref('')
@@ -143,6 +156,33 @@ watch(() => props.instances, (items) => {
   if (!items.some((item) => item.id === selected.value)) selected.value = items[0]?.id ?? ''
 }, { immediate: true })
 const current = computed(() => props.instances.find((item) => item.id === selected.value))
+async function refreshInstalled() {
+  if (!selected.value) {
+    installedMods.value = []
+    return
+  }
+  installedBusy.value = true
+  installedError.value = ''
+  try { installedMods.value = await get_content_items(selected.value) }
+  catch (error) { installedError.value = error instanceof Error ? error.message : String(error) }
+  finally { installedBusy.value = false }
+}
+watch([selected, page, modTab], () => {
+  if (page.value === 'mods' && modTab.value === 'installed') void refreshInstalled()
+}, { immediate: true })
+async function toggleInstalled(item: ContentItem) {
+  if (!selected.value || !item.file_path || item.locked || item.hideToggle || installedToggle.value) return
+  installedToggle.value = item.id
+  installedError.value = ''
+  try {
+    await toggle_disable_project(selected.value, item.file_path, item.enabled === false)
+    await refreshInstalled()
+  } catch (error) {
+    installedError.value = error instanceof Error ? error.message : String(error)
+  } finally {
+    installedToggle.value = ''
+  }
+}
 function navigate(id: string) {
   void router.push({ path: '/', query: { nova: id } })
 }
@@ -279,15 +319,25 @@ function openSettings() {
           <p v-else>Customize your Minecraft experience.</p>
         </div>
         <button v-if="page === 'installations'" class="nova-button nova-primary" @click="emit('create')">+ New installation</button>
+        <button v-if="page === 'mods'" class="nova-button nova-primary" @click="modTab = 'discover'; void searchMods()">+ Add mod</button>
       </header>
 
       <div v-if="page === 'installations'" class="nova-content-stack">
+        <div class="nova-installations-toolbar">
+          <input v-model="instanceSearch" class="nova-glass nova-search-input" aria-label="Search installations" placeholder="⌕  Search installations…"/>
+          <div class="nova-filter-pills">
+            <button v-for="kind in ['all','vanilla','fabric','forge','neoforge','quilt']" :key="kind"
+              class="nova-glass nova-filter-pill" :class="{ selected: instanceFilter === kind }"
+              @click="instanceFilter = kind">{{ kind }}</button>
+          </div>
+        </div>
         <div v-if="!props.instances.length" class="nova-glass nova-empty">No installations yet. Create one to install Minecraft.</div>
-        <div v-for="instance in props.instances" :key="instance.id" class="nova-glass nova-instance">
+        <div v-else-if="!visibleInstances.length" class="nova-glass nova-empty">No installations match these filters.</div>
+        <div v-for="instance in visibleInstances" :key="instance.id" class="nova-glass nova-instance">
           <div class="nova-instance-icon">▣</div>
-          <div class="nova-instance-info"><strong>{{ instance.name }}</strong><small>{{ instance.loader }} · {{ instance.game_version }} · {{ instance.install_stage.replaceAll('_', ' ') }}</small></div>
-          <button class="nova-button nova-soft" @click="router.push('/instance/' + encodeURIComponent(instance.id))">Manage</button>
+          <div class="nova-instance-info"><strong>{{ instance.name }}</strong><small>Minecraft Java · {{ instance.game_version }} · {{ instance.loader }} · {{ instance.install_stage.replaceAll('_', ' ') }}</small></div>
           <button class="nova-button nova-primary" :disabled="instance.quarantined || instance.install_stage !== 'installed' || !!launching" @click="launch(instance)">▶ Play</button>
+          <button class="nova-button nova-soft nova-instance-more" :aria-label="'Manage ' + instance.name" @click="router.push('/instance/' + encodeURIComponent(instance.id))">⋯</button>
         </div>
       </div>
 
@@ -296,6 +346,37 @@ function openSettings() {
       </div>
 
       <div v-else-if="page === 'mods'" class="nova-content-stack">
+        <div class="nova-mods-toolbar">
+          <div class="nova-filter-pills">
+            <button class="nova-glass nova-filter-pill" :class="{ selected: modTab === 'installed' }" @click="modTab = 'installed'">Installed</button>
+            <button class="nova-glass nova-filter-pill" :class="{ selected: modTab === 'discover' }" @click="modTab = 'discover'; void searchMods()">Discover</button>
+          </div>
+          <select v-model="selected" class="nova-glass nova-mod-instance-choice" aria-label="Minecraft installation for mods">
+            <option v-if="!props.instances.length" value="">Create an installation first</option>
+            <option v-for="instance in props.instances" :key="instance.id" :value="instance.id">{{ instance.name }}</option>
+          </select>
+        </div>
+        <div v-if="modTab === 'installed'" class="nova-installed-list">
+          <p v-if="installedError" class="nova-error" role="alert">{{ installedError }}</p>
+          <p v-if="installedBusy" class="nova-mod-loading" role="status">Loading installed Minecraft content…</p>
+          <div v-if="!selected" class="nova-glass nova-empty">Select an installation to see installed mods.</div>
+          <div v-else-if="!installedBusy && !installedMods.length" class="nova-glass nova-empty">Nothing installed in this Minecraft profile yet. Choose Discover to find content.</div>
+          <div v-for="item in installedMods" :key="item.id" class="nova-glass nova-installed-item">
+            <img v-if="item.project?.icon_url || item.embedded_metadata?.icon_url" :src="item.project?.icon_url || item.embedded_metadata?.icon_url || ''" :alt="item.project?.title || item.file_name" class="nova-installed-icon" loading="lazy"/>
+            <div v-else class="nova-instance-icon">▣</div>
+            <div class="nova-installed-info">
+              <strong>{{ item.project?.title || item.embedded_metadata?.name || item.file_name }}</strong>
+              <small>{{ item.owner?.name || item.project_type }} · {{ item.version?.version_number || item.file_name }}</small>
+            </div>
+            <span v-if="item.version?.version_number" class="nova-installed-version">{{ item.version.version_number }}</span>
+            <label class="nova-switch" :title="item.locked ? 'This mod is locked by the installation' : 'Enable or disable mod'">
+              <input type="checkbox" :checked="item.enabled !== false" :disabled="!!installedToggle || !!item.locked || !!item.hideToggle || !item.file_path" @change="toggleInstalled(item)"/>
+              <span/>
+            </label>
+          </div>
+        </div>
+        <div v-else class="nova-discover-panel">
+
         <div class="nova-kind-switcher" role="group" aria-label="Minecraft content type">
           <button v-for="kind in (['mod', 'modpack', 'shader', 'resourcepack'] as ModKind[])" :key="kind" class="nova-glass nova-kind-tab" :class="{ 'nova-kind-selected': modKind === kind }" @click="selectModKind(kind)">
             {{ ({ mod: 'Mods', modpack: 'Modpacks', shader: 'Shaders', resourcepack: 'Resource Packs' } as Record<ModKind,string>)[kind] }}
@@ -343,6 +424,7 @@ function openSettings() {
               <button class="nova-button nova-soft" @click="openMod(mod)">View details</button>
             </div>
           </article>
+        </div>
         </div>
       </div>
 
