@@ -1,44 +1,126 @@
-# Nova Launcher v2 🌸
+<div align="center">
 
-An independent Minecraft Java Edition desktop launcher, under active development, built on the open-source **X Minecraft Launcher (XMCL)** engine.
+<img src="assets/landing/nova-banner.svg" alt="Nova Launcher: Your Minecraft. Your worlds. Your way." width="100%" />
 
-> **Current branch:** `xmcl-rebuild`. The old Modrinth-based Nova Launcher is preserved in `main` as a working backup. These are separate implementations.
+<br />
 
-## Target design
+<a href="https://github.com/Thatboer/NovaLauncher/releases/download/v2.0.0-preview.1/NovaLauncher-v2.0.0-preview.1-Windows-x64.zip"><img src="assets/landing/download-windows.svg" alt="Download Nova Launcher Windows preview" width="330" /></a>
+&nbsp;
+<a href="https://github.com/Thatboer/NovaLauncher/tree/xmcl-rebuild"><img src="assets/landing/view-source.svg" alt="View Nova v2 source code" width="226" /></a>
 
-The approved **Nova Design #5** is the visual contract: cherry-grove lake and portal scenery, lavender glass, pink-purple Play button, original Nova branding and six consistent pages. See `docs/NOVA_DESIGN5_SPEC.md`.
+<br /><br />
 
-- **Home:** original Nova shell, real installed instances and XMCL launch controller
-- **Installations:** real installed Minecraft Java versions, search, loader filtering and create dialog
-- **Profiles:** real XMCL Microsoft authentication and account manager, with Nova layout
-- **Mods:** real Modrinth catalog search. Direct install is **not yet integrated** in this new engine.
-- **Servers:** permanent NovaSMP (`novasmp.gg`) plus persistent local favorites. Does **not yet** merge `servers.dat` or implement one-click joining.
-- **Settings:** real saved glass opacity, About/Credits; advanced game memory/Java controls still to be integrated.
+[![Windows preview build](https://github.com/Thatboer/NovaLauncher/actions/workflows/xmcl-windows.yml/badge.svg?branch=xmcl-rebuild)](https://github.com/Thatboer/NovaLauncher/actions/workflows/xmcl-windows.yml)
+![Windows x64](https://img.shields.io/badge/Windows-x64-B888F3?style=flat-square)
+![Preview](https://img.shields.io/badge/Release-Experimental%20Preview-C181E9?style=flat-square)
+![XMCL engine](https://img.shields.io/badge/Engine-XMCL-8C67C8?style=flat-square)
 
-This is not production-ready. The first XMCL-v2 renderer compiled successfully on GitHub Actions. The Windows x64 unsigned preview workflow is separate; its build outcome and actual Minecraft launch/authentication must be tested before claiming they work.
+**A new way to launch Minecraft Java Edition.** 🌸
 
-## Source layout
+*Lavender glass • Cherry-grove atmosphere • Your worlds, all in one place*
 
-- `xmcl/NovaShell.vue`: six native Nova screens and XMCL engine integration
-- `xmcl/nova.css`: original lavender/pink frosted-glass styling
-- `xmcl/apply.mjs`: non-destructive renderer overlay onto pinned upstream source
-- `xmcl/prepare-windows.mjs`: isolated Nova app identity, no XMCL publishing or auto-update behavior
-- `xmcl/generate_windows_icons.py`: original purple Nova icon art for Windows
-- `.github/workflows/xmcl-renderer.yml`: Linux Vue/TypeScript + renderer verification
-- `.github/workflows/xmcl-windows.yml`: Windows x64 portable unsigned ZIP preview
+</div>
 
-Builds fetch XMCL at the **exact pinned commit**
-`4aee50aaf1cb7ee741ba995c87017f4dbe85584e`.
-Do not automatically switch to upstream latest without rechecking compatibility.
+> [!IMPORTANT]
+> **Early preview, not a finished launcher.** The Windows build compiles successfully, but Microsoft sign-in, Minecraft installation, multiplayer joining, and launching the game are **not yet verified on a Windows PC**. Download for testing, not as a replacement for a working launcher.
 
-## Build/verification
+## ✨ Meet Nova Launcher
 
-The GitHub Actions tab provides two workflows. The Windows artifact is a **portable ZIP preview**, not a signed installer. A renderer-only artifact cannot be launched as a Windows app.
+Nova Launcher is an independent Minecraft Java launcher being rebuilt with a fully original **Design #5** interface. Think soft purple glass, cherry blossoms, an uncluttered home screen, and a big glowing Play button.
 
-Before sharing publicly: verify all six screens, Minecraft account login, instance creation, Java installation and launch, no hidden XMCL/Modrinth styling, update isolation, Windows startup and app data isolation. Use only a properly licensed background asset matching Design #5. Existing cherry-grove art is not yet the exact lake/portal composition.
+Unlike our earlier prototype, **Nova v2 runs on the open-source [X Minecraft Launcher (XMCL)](https://github.com/Voxelum/x-minecraft-launcher) engine** rather than the Modrinth App frontend. We use XMCL's installation, account, and game-launching systems while building Nova's own six-page interface.
 
-## Licensing and upstream credit
+<table>
+<tr><td width="50%" valign="top">
 
-XMCL source and libraries are maintained by the [Voxelum project](https://github.com/Voxelum/x-minecraft-launcher) under the **MIT license**. The fetched original repository includes its `LICENSE` and copyright notices, which must be retained when distributing the modified application. The Modrinth catalog API is used as a content provider; it is not the launcher base.
+### 🌸 Your space, your style
+A lavender-glass interface with a cherry-grove atmosphere, Nova branding and an easy-to-find Play button.
 
-Nova Launcher is unofficial and not affiliated with Mojang Studios, Microsoft, XMCL or Modrinth.
+</td><td width="50%" valign="top">
+
+### 🎮 Minecraft installations
+Select your Minecraft Java profile, create new installations and organize Vanilla or modded versions.
+
+</td></tr>
+<tr><td valign="top">
+
+### 🧩 Discover Minecraft content
+Browse real mods, shaders and modpacks. Direct installation into XMCL is **still in development**.
+
+</td><td valign="top">
+
+### 🌌 NovaSMP built in
+NovaSMP is permanently featured with Java address `novasmp.gg`. Other servers can be saved as favorites.
+
+</td></tr>
+</table>
+
+## 💜 Download for Windows
+
+<div align="center">
+
+<a href="https://github.com/Thatboer/NovaLauncher/releases/download/v2.0.0-preview.1/NovaLauncher-v2.0.0-preview.1-Windows-x64.zip"><img src="assets/landing/download-windows.svg" alt="Download Nova Launcher Windows x64 preview" width="330" /></a>
+
+**[See the release notes](https://github.com/Thatboer/NovaLauncher/releases/tag/v2.0.0-preview.1)** · **[All releases](https://github.com/Thatboer/NovaLauncher/releases)**
+
+</div>
+
+This preview is a **Windows x64 portable ZIP**, approximately **136 MiB**. It is not an installer and is not digitally signed.
+
+1. Click **Download for Windows** above.
+2. Extract the entire ZIP to a folder of your choice.
+3. Open **`Nova Launcher.exe`** from the extracted folder.
+4. Treat it as an experimental build. Back up important Minecraft worlds before testing.
+
+> [!NOTE]
+> You do **not** need to log into GitHub to download the ZIP from Releases. Windows might show a publisher warning because this experimental build is unsigned. The build does not prove that Minecraft login or launching works yet.
+
+## 🪄 Six pages, one launcher
+
+| Page | What's inside |
+| --- | --- |
+| **🏠 Home** | Nova-themed dashboard, installation selector and Play control |
+| **📦 Installations** | Real Java instances, search, version details and create flow |
+| **👤 Profiles** | Microsoft account integration through XMCL |
+| **🧩 Mods** | Nova-styled discovery powered by Minecraft content catalogs |
+| **🌌 Servers** | Permanent NovaSMP shortcut and locally saved server favorites |
+| **⚙️ Settings** | Theme and glass appearance controls, with more features planned |
+
+## 🛠️ Development progress
+
+- [x] Original Nova six-page shell
+- [x] XMCL-based engine, separated from the old prototype
+- [x] Lavender-glass theme and Nova Windows icon
+- [x] Windows x64 portable preview built on GitHub Actions
+- [x] Stable GitHub Release download
+- [x] NovaSMP permanently displayed in Servers
+- [ ] Confirm Microsoft authentication and game launch on Windows
+- [ ] Direct mod installation and installed-mod management
+- [ ] One-click multiplayer joining and `servers.dat` synchronization
+- [ ] Perfect Design #5 scenery, including lake and Nether portal
+- [ ] Final settings, updater, signing and installer
+
+## 👩‍💻 Source code and branches
+
+| Branch | Purpose |
+| --- | --- |
+| [`xmcl-rebuild`](https://github.com/Thatboer/NovaLauncher/tree/xmcl-rebuild) | **Current Nova v2 development**, using XMCL |
+| [`main`](https://github.com/Thatboer/NovaLauncher/tree/main) | Preserved earlier Modrinth-based Nova prototype |
+
+[View current source](https://github.com/Thatboer/NovaLauncher/tree/xmcl-rebuild/xmcl) · [GitHub Actions builds](https://github.com/Thatboer/NovaLauncher/actions) · [Design #5 notes](https://github.com/Thatboer/NovaLauncher/blob/xmcl-rebuild/docs/NOVA_DESIGN5_SPEC.md) · [Report a problem](https://github.com/Thatboer/NovaLauncher/issues)
+
+## 📜 Credits and licensing
+
+Nova Launcher v2 is based on **[X Minecraft Launcher](https://github.com/Voxelum/x-minecraft-launcher)**, licensed under MIT. The source and downloadable Windows preview retain upstream attribution and license information. We also use third-party Minecraft content catalogs, including Modrinth, for search results.
+
+The earlier prototype under `main` uses the Modrinth App (GPL-3.0-only) and remains separate from the XMCL-based rebuild.
+
+**Nova Launcher is unofficial** and is not affiliated with Mojang Studios, Microsoft, XMCL or Modrinth.
+
+<div align="center">
+
+**Made for Minecraft adventures. Built around Nova.** 🌸
+
+<a href="#-download-for-windows">Back to the download</a> · <a href="https://web.novasmp.gg">NovaSMP website</a>
+
+</div>
