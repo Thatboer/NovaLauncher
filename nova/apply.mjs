@@ -10,6 +10,9 @@ const files = {
   app: 'apps/app-frontend/src/App.vue',
   index: 'apps/app-frontend/src/pages/Index.vue',
   title: 'apps/app-frontend/src/app/shell/title-bar/index.vue',
+  splash: 'apps/app-frontend/src/components/ui/SplashScreen.vue',
+  html: 'apps/app-frontend/index.html',
+  rust: 'apps/app/src/main.rs',
 }
 const required = Object.values(files)
 function mustContain(value, token, area) {
@@ -108,7 +111,7 @@ function patchTitle(value) {
     '<template>',
     '  <header data-tauri-drag-region class="app-title-bar nova-titlebar">',
     '    <div data-tauri-drag-region class="nova-titlebar-brand">',
-    '      <span class="nova-app-mark" data-tauri-drag-region>N</span>',
+    '      <img class="nova-titlebar-logo" src="@/features/nova/nova-logo.svg" alt="" aria-hidden="true" />',
     '      <strong data-tauri-drag-region>Nova Launcher</strong>',
     '      <span class="nova-bar-divider" data-tauri-drag-region></span>',
     '      <small data-tauri-drag-region>Minecraft Java Launcher</small>',
@@ -121,10 +124,60 @@ function patchTitle(value) {
   return value.slice(0, start) + nova + value.slice(end + '</template>'.length)
 }
 
+function patchSplash(value) {
+  mustContain(value, 'id="modrinth-app-logo"', 'upstream splash logo')
+  mustContain(value, "import ProgressBar from '@/components/ui/ProgressBar.vue'", 'splash progress')
+  const start = value.indexOf('<template>')
+  const end = value.indexOf('</template>', start)
+  if (start !== 0 || end < 0) throw new Error('Unexpected splash template')
+  const replacement = \`<template>
+  <Transition name="splash-fade" @after-leave="onAfterLeave">
+    <div v-if="!doneLoading" class="splash-screen nova-splash" :class="\`\${theme.active}-mode\`">
+      <div class="app-logo-wrapper nova-splash-content" data-tauri-drag-region>
+        <img class="nova-splash-logo" src="@/features/nova/nova-logo.svg" alt="NOVA" />
+        <strong class="nova-splash-label">NOVA LAUNCHER</strong>
+        <small class="nova-splash-subtitle">Minecraft Java Edition</small>
+        <ProgressBar class="loading-bar" :progress="Math.min(loadingProgress, 100)" />
+        <span v-if="message" class="nova-splash-message">{{ message }}</span>
+      </div>
+    </div>
+  </Transition>
+</template>\`
+  // Existing loading state, progression, and lifecycle remain untouched.
+  value = replacement + value.slice(end + '</template>'.length)
+  return value + \`
+<style scoped>
+.nova-splash {
+  background: radial-gradient(circle at 50% 35%, #663a91, #1c0c31 68%, #090514);
+}
+.nova-splash-content { color: #fff; gap: 9px; }
+.nova-splash-logo { width: 164px; height: 164px; border-radius: 50%; object-fit: contain; filter: drop-shadow(0 0 22px #b24af58c); }
+.nova-splash-label { font: 850 27px Inter, system-ui, sans-serif; letter-spacing: .08em; }
+.nova-splash-subtitle { margin-bottom: 20px; color: #e6c8f9; font: 13px Inter, system-ui, sans-serif; }
+.nova-splash-message { color: #dfc5ef; font-size: 12px; }
+.nova-splash .loading-bar { --color-brand: #bd7af9; }
+</style>\`
+}
+function patchHtml(value) {
+  mustContain(value, '<title>Modrinth App</title>', 'upstream HTML title')
+  value = value.replace('<title>Modrinth App</title>', '<title>Nova Launcher</title>')
+  // This startup page runs before Vue; leave no upstream tab icon or survey widget.
+  value = value.replace('<link rel="icon" type="image/svg+xml" href="/vite.svg" />', '')
+  value = value.replace(/<script src="https:\/\/tally\.so\/widgets\/embed\.js" async><\/script>\s*/, '')
+  return value
+}
+function patchRust(value) {
+  mustContain(value, 'Loading Modrinth App!', 'Rust startup string')
+  return value.replace('Loading Modrinth App!', 'Loading Nova Launcher!')
+}
+
 const changes = [
   [files.app, patchApp],
   [files.index, patchIndex],
   [files.title, patchTitle],
+  [files.splash, patchSplash],
+  [files.html, patchHtml],
+  [files.rust, patchRust],
 ]
 const staged = []
 for (const [relative, fn] of changes) {
@@ -139,7 +192,7 @@ for (const [relative, fn] of changes) {
 const dest = path.join(target, 'apps/app-frontend/src/features/nova')
 if (fs.existsSync(dest)) throw new Error('Nova components already present: ' + dest)
 fs.mkdirSync(dest, { recursive: true })
-for (const name of ['NovaPage.vue', 'NovaSidebar.vue', 'NovaAccounts.vue', 'nova-theme.css', 'cherry-grove.avif']) {
+for (const name of ['NovaPage.vue', 'NovaSidebar.vue', 'NovaAccounts.vue', 'nova-theme.css', 'nova-logo.svg', 'cherry-grove.avif']) {
   fs.copyFileSync(path.join(sourceDir, name), path.join(dest, name))
 }
 for (const item of staged) {
@@ -153,6 +206,9 @@ config.productName = 'Nova Launcher'
 config.mainBinaryName = 'NovaLauncher'
 config.identifier = 'gg.novasmp.novalauncher'
 config.app.windows[0].title = 'Nova Launcher'
-config.version = '1.0.3' // Design #5 overhaul, above 1.0.2 test build
+config.bundle.shortDescription = 'NOVA Minecraft Java Launcher'
+config.bundle.longDescription = 'Independent Nova Launcher for Minecraft Java Edition.'
+config.plugins['deep-link'].desktop.schemes = ['nova-launcher']
+config.version = '1.0.4' // NOVA-only branding; above 1.0.3 test build
 fs.writeFileSync(configPath, JSON.stringify(config, null, 2))
 console.log('Applied Nova UI and Windows app identity. Original files backed up.')
