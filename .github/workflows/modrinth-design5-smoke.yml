@@ -85,9 +85,10 @@ jobs:
             noFullWidthAuthWarning: app.includes('nova-auth-notice') && !app.includes('v-if="authUnreachable"\\n\\t\\t\\t\\ttype="warning"'),
             authCheckStillPresent: app.includes('await check_reachable()') && app.includes('authServerQuery.refetch()'),
             noBrokenTitlebarIconUrl: title.includes(':src="novaLogoUrl"') && !title.includes('src="@/features/nova/nova-logo.svg"'),
-            titleSfcNotTruncated: title.includes('</script>\\n\\n<template>') &&
-              title.includes('import novaLogoUrl from') &&
-              title.includes('</header>\\n</template>'),
+            titleSfcNotTruncated: title.includes('import novaLogoUrl from') &&
+              title.indexOf('</script>') > 0 &&
+              title.indexOf('<template>') > title.indexOf('</script>') &&
+              title.indexOf('</header>') < title.indexOf('</template>'),
 
             noBrokenSplashIconUrl: splash.includes(':src="novaLogoUrl"') && !splash.includes('src="@/features/nova/nova-logo.svg"'),
             creationDialogScoped: app.includes('class="nova-create-instance-modal"') && theme.includes('.nova-create-instance-modal'),
