@@ -37,8 +37,7 @@ const modInstalling = ref('')
 const modStatus = ref('')
 const modStatusIsError = ref(false)
 
-// The official NovaSMP server is a bundled entry, never user-removable.
-const NOVASMP_ADDRESS = 'novasmp.gg'
+// User-chosen server shortcuts only. Nothing is preloaded or featured.
 const FAVORITES_KEY = 'nova.launcher.servers.v1'
 type FavoriteServer = { id: string; name: string; address: string }
 const favoriteServers = ref<FavoriteServer[]>([])
@@ -49,7 +48,6 @@ const serverFormOpen = ref(false)
 const serverError = ref('')
 const serverNotice = ref('')
 const addressKey = (address: string) => address.trim().toLowerCase()
-const isNovaServer = (address: string) => addressKey(address).replace(/:\d+$/, '') === NOVASMP_ADDRESS
 
 onMounted(() => {
   try {
@@ -61,7 +59,7 @@ onMounted(() => {
       const item = entry as Record<string, unknown>
       if (typeof item.id !== 'string' || typeof item.name !== 'string' || typeof item.address !== 'string') return false
       const normalized = addressKey(item.address)
-      if (!normalized || isNovaServer(normalized) || seen.has(normalized)) return false
+      if (!normalized || seen.has(normalized)) return false
       seen.add(normalized)
       return true
     }).map(item => ({ id: item.id, name: item.name.slice(0, 50), address: item.address.slice(0, 255) }))
@@ -90,7 +88,6 @@ function saveServer() {
   if (!/^[a-z0-9.-]+(?::\d{1,5})?$/i.test(address)) { serverError.value = 'Enter a valid Java server hostname, optionally with :port.'; return }
   const port = address.match(/:(\d+)$/)?.[1]
   if (port && (Number(port) < 1 || Number(port) > 65535)) { serverError.value = 'Invalid port number.'; return }
-  if (isNovaServer(address)) { serverError.value = 'NovaSMP is already pinned at the top.'; return }
   if (favoriteServers.value.some(x => addressKey(x.address) === addressKey(address) && x.id !== serverEditingId.value)) {
     serverError.value = 'That server is already saved.'
     return
@@ -214,7 +211,7 @@ function openSettings() {
   <main class="nova-page">
     <section v-if="page === 'home'" class="nova-home">
       <div class="nova-home-center">
-        <div class="nova-star" aria-label="Nova Launcher logo"><span>N</span></div>
+        <img class="nova-home-logo" src="./nova-logo.webp" alt="NOVA" />
         <h1>Nova Launcher</h1>
         <p>A sleek and modern way to play Minecraft.</p>
         <div class="nova-rule"><span>✦</span></div>
@@ -252,7 +249,7 @@ function openSettings() {
           <p v-if="page === 'installations'">Manage Minecraft versions and modded instances.</p>
           <p v-else-if="page === 'profiles'">Use your existing Microsoft Minecraft account.</p>
           <p v-else-if="page === 'mods'">Browse mods, modpacks, shaders and resources without leaving Nova.</p>
-          <p v-else-if="page === 'servers'">Favorite servers and the NovaSMP community.</p>
+          <p v-else-if="page === 'servers'">Keep your favorite multiplayer servers ready to join.</p>
           <p v-else>Customize your Minecraft experience.</p>
         </div>
         <button v-if="page === 'installations'" class="nova-button nova-primary" @click="emit('create')">+ New installation</button>
@@ -323,45 +320,36 @@ function openSettings() {
         </div>
       </div>
 
-      <div v-else-if="page === 'servers'" class="nova-content-stack">
-        <div class="nova-glass nova-featured-server">
-          <div class="nova-featured-emblem" aria-hidden="true">✧</div>
-          <div class="nova-featured-details">
-            <div class="nova-eyebrow">OFFICIAL NOVASMP · FEATURED · PINNED</div>
-            <h2>NovaSMP</h2>
-            <p>Survival, raiding, community events and Java + Bedrock crossplay. Always present in Nova Launcher.</p>
-            <div class="nova-server-ip"><span>JAVA SERVER</span><code>{{ NOVASMP_ADDRESS }}</code></div>
-            <div class="nova-server-buttons">
-              <button class="nova-button nova-primary" @click="copyServer(NOVASMP_ADDRESS)">Copy Java IP</button>
-              <a class="nova-button nova-soft nova-inline-link" href="https://web.novasmp.gg" target="_blank" rel="noopener noreferrer">Website ↗</a>
-            </div>
-          </div>
+      <div v-else-if="page === 'servers'" class="nova-content-stack nova-custom-servers">
+        <div class="nova-servers-intro nova-glass">
+          <span class="nova-overline">YOUR MINECRAFT SERVERS</span>
+          <h2>My Servers</h2>
+          <p>Save the Java multiplayer servers you actually play. Nothing is added automatically.</p>
+          <button class="nova-button nova-primary" @click="editServer()">+ Add server</button>
         </div>
         <p v-if="serverError" class="nova-error" role="alert">{{ serverError }}</p>
         <p v-if="serverNotice" class="nova-server-notice" role="status">{{ serverNotice }}</p>
-        <div class="nova-server-section-heading">
-          <div><h2>My Servers</h2><p>Your Java server shortcuts, saved locally in Nova.</p></div>
-          <button class="nova-button nova-primary" @click="editServer()">+ Add Server</button>
-        </div>
         <form v-if="serverFormOpen" class="nova-glass nova-server-form" @submit.prevent="saveServer">
-          <label>SERVER NAME<input v-model="serverName" class="nova-glass" maxlength="50" placeholder="My server" required /></label>
+          <label>SERVER NAME<input v-model="serverName" class="nova-glass" maxlength="50" placeholder="My Minecraft server" required /></label>
           <label>JAVA ADDRESS<input v-model="serverAddress" class="nova-glass" maxlength="255" placeholder="example.com:25565" required /></label>
           <div class="nova-server-buttons">
-            <button class="nova-button nova-primary" type="submit">{{ serverEditingId ? 'Save Changes' : 'Add Server' }}</button>
+            <button class="nova-button nova-primary" type="submit">{{ serverEditingId ? 'Save changes' : 'Save server' }}</button>
             <button class="nova-button nova-soft" type="button" @click="serverFormOpen = false">Cancel</button>
           </div>
         </form>
-        <div v-if="!favoriteServers.length && !serverFormOpen" class="nova-glass nova-empty">No other servers yet. Add any server to keep its address handy.</div>
+        <div v-if="!favoriteServers.length && !serverFormOpen" class="nova-glass nova-empty">
+          No servers saved yet. Add your first favorite above.
+        </div>
         <div v-for="server in favoriteServers" :key="server.id" class="nova-glass nova-server-favorite">
           <div class="nova-favorite-icon" aria-hidden="true">▤</div>
           <div class="nova-favorite-details"><strong>{{ server.name }}</strong><code>{{ server.address }}</code></div>
           <div class="nova-server-buttons">
-            <button class="nova-button nova-soft" @click="copyServer(server.address)">Copy</button>
+            <button class="nova-button nova-soft" @click="copyServer(server.address)">Copy IP</button>
             <button class="nova-button nova-soft" @click="editServer(server)">Edit</button>
             <button class="nova-button nova-soft" @click="removeServer(server)">Remove</button>
           </div>
         </div>
-        <p class="nova-server-disclaimer">The official NovaSMP shortcut is permanent. Minecraft's in-game multiplayer list is not yet synchronized.</p>
+        <p class="nova-server-disclaimer">Saved Nova favorites are local to this launcher. Minecraft's in-game server list is not modified.</p>
       </div>
 
       <div v-else class="nova-content-stack">
