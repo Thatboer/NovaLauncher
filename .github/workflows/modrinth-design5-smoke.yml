@@ -1,0 +1,66 @@
+name: Nova Design 5 source integration check
+
+on:
+  push:
+    branches: [modrinth-design5]
+    paths:
+      - 'nova/**'
+      - '.github/workflows/modrinth-design5-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nova-design5-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-overlay:
+    name: Patch pinned Modrinth and verify Nova chrome
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      SOURCE_SHA: f73010ae0809813120a16b733a3d0bfd23f76e24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Fetch pinned upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q modrinth-upstream
+          git -C modrinth-upstream remote add origin https://github.com/modrinth/code.git
+          git -C modrinth-upstream fetch --depth 1 origin "$SOURCE_SHA"
+          git -C modrinth-upstream checkout -q --detach FETCH_HEAD
+          test "$(git -C modrinth-upstream rev-parse HEAD)" = "$SOURCE_SHA"
+      - name: Apply Design #5 Nova overlay
+        run: node nova/apply.mjs modrinth-upstream
+      - name: Confirm no ad startup, green brand, or legacy chrome in patched frontend
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs'
+          function load(p) { return fs.readFileSync('modrinth-upstream/apps/app-frontend/src/' + p, 'utf8') }
+          const app = load('App.vue')
+          const title = load('app/shell/title-bar/index.vue')
+          const index = load('pages/Index.vue')
+          const theme = load('features/nova/nova-theme.css')
+          const account = load('features/nova/NovaAccounts.vue')
+          const checks = {
+            noConsentStartup: !app.includes('handleAdsConsentRequired(await should_show_ads_consent_popup())'),
+            noAdWindowInitialization: !app.includes('await init_ads_window('),
+            adContextDisabled: app.includes('const showAd = computed(() => false)'),
+            adConsentContextDisabled: app.includes('const adConsentAvailable = computed(() => false)'),
+            noSurveyPromotions: !app.includes('<SurveyPopup />'),
+            novaTitle: title.includes('Minecraft Java Launcher') && !title.includes('<AppActionBar />') && !title.includes('<TextLogo'),
+            novaLeftNavigation: app.includes('<NovaSidebar '),
+            novaPages: index.includes('<NovaPage'),
+            brandPurpleTokens: theme.includes('--color-brand: #bd7af9 !important'),
+            noLegacyAccountCard: account.includes('get_default_user') && !account.includes('<AccountsCard'),
+          }
+          console.log(checks)
+          if (Object.values(checks).some(v => !v)) process.exit(1)
+          NODE
