@@ -160,3 +160,10 @@ html.nova-theme .app-title-bar .nova-app-title { user-select: none; }
   .nova-kind-switcher { grid-template-columns:1fr 1fr; }
   .nova-kind-tab { min-height:48px; }
 }
+
+/* Unique Nova logotype, distinct from upstream and the earlier star placeholder. */
+.nova-star { display:grid; place-items:center; width:114px; height:114px; margin-bottom:18px; border-radius:29px; background:linear-gradient(145deg,#f9e1ffc7,#a76ad7a3 50%,#693792ac); border:1px solid #fff6; box-shadow:0 12px 40px #57246884,inset 0 1px 2px #fff8; transform:rotate(-6deg); }
+.nova-star span { display:block; font-family:Inter,Arial,sans-serif; font-size:87px; font-weight:950; font-style:italic; line-height:1; letter-spacing:-.12em; padding-right:15px; padding-bottom:8px; background:linear-gradient(160deg,#fff9fe 12%,#d6a2ff 48%,#7633bb 86%); background-clip:text; -webkit-background-clip:text; color:transparent; -webkit-text-stroke:1px #fff4; filter:drop-shadow(3px 6px 0 #63248877); }
+.nova-side-icon { display:grid; place-items:center; font-size:29px; font-weight:950; font-style:italic; letter-spacing:-.11em; width:38px; height:38px; border-radius:11px; padding-right:4px; background:linear-gradient(145deg,#e6baffcf,#8c42c898); border:1px solid #fff6; color:#fff; filter:drop-shadow(0 0 6px #f4b1ff); text-shadow:0 2px 4px #693589; }
+.nova-app-mark { display:inline-grid; place-items:center; width:27px; height:27px; margin-right:4px; border-radius:7px; background:linear-gradient(145deg,#e1acfa,#9955c9); border:1px solid #fff8; font-size:18px; font-weight:950; font-style:italic; vertical-align:middle; padding-right:2px; }
+@media(max-width:680px) { .nova-star { width:90px; height:90px; border-radius:23px; }.nova-star span { font-size:70px; } }
