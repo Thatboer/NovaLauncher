@@ -1,0 +1,52 @@
+name: NOVA Design 5 Vue renderer validation
+
+on:
+  push:
+    branches: [modrinth-design5]
+    paths:
+      - 'nova/**'
+      - '.github/workflows/modrinth-design5-frontend.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nova-design5-vue-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  renderer:
+    name: Compile the real patched NOVA Vue frontend
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    env:
+      UPSTREAM_SHA: f73010ae0809813120a16b733a3d0bfd23f76e24
+    steps:
+      - name: Checkout Nova overlay
+        uses: actions/checkout@v4
+      - name: Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: pnpm 12
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.11.2
+      - name: Fetch pinned upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q modrinth-upstream
+          git -C modrinth-upstream remote add origin https://github.com/modrinth/code.git
+          git -C modrinth-upstream fetch --depth 1 origin "$UPSTREAM_SHA"
+          git -C modrinth-upstream checkout --detach -q FETCH_HEAD
+          test "$(git -C modrinth-upstream rev-parse HEAD)" = "$UPSTREAM_SHA"
+      - name: Apply Nova overlays
+        run: node nova/apply.mjs modrinth-upstream
+      - name: Install pinned frontend dependencies
+        working-directory: modrinth-upstream
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck and build the actual frontend
+        working-directory: modrinth-upstream
+        run: pnpm --filter @modrinth/app-frontend run build
