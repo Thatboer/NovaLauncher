@@ -19,6 +19,7 @@ const nav: Array<{ key: Page; name: string; icon: string }> = [
   { key: 'servers', name: 'Servers', icon: '▤' },
   { key: 'settings', name: 'Settings', icon: '⚙' },
 ]
+const novaWindowController = windowController
 const page = ref<Page>('home')
 const { instances, path: activePath, select } = injection(kInstance)
 const launcher = injection(kLaunchButton)
@@ -187,9 +188,9 @@ const shellStyle = computed(() => ({ '--nova-glass-alpha': (opacity.value / 100)
     <header class="nova-titlebar">
       <div class="nova-title-identity"><span class="nova-small-mark">N</span><strong>Nova Launcher</strong><span class="nova-title-divider"></span><small>Minecraft Java Launcher</small></div>
       <div class="nova-window-controls">
-        <button title="Minimize" aria-label="Minimize" @click="windowController.minimize()">−</button>
-        <button title="Maximize" aria-label="Maximize" @click="windowController.maximize()">□</button>
-        <button class="nova-window-close" title="Close" aria-label="Close" @click="windowController.close()">×</button>
+        <button title="Minimize" aria-label="Minimize" @click="novaWindowController.minimize()">−</button>
+        <button title="Maximize" aria-label="Maximize" @click="novaWindowController.maximize()">□</button>
+        <button class="nova-window-close" title="Close" aria-label="Close" @click="novaWindowController.close()">×</button>
       </div>
     </header>
     <div class="nova-layout">
