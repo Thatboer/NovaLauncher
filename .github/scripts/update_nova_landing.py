@@ -50,7 +50,7 @@ def main() -> None:
 
 **[Direct .exe download]({asset})** · [Release notes]({url}/releases/tag/{tag}) · [All releases]({url}/releases)
 
-**Newest successful build:** #{args.run_number} · {args.date} (UTC) · \`{args.sha[:9]}\`
+**Newest successful build:** #{args.run_number} · {args.date} (UTC) · `{args.sha[:9]}`
 
 </div>"""
         text = replace_section(text, "DOWNLOAD", download)
