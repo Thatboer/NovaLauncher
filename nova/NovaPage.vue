@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { injectNotificationManager } from '@modrinth/ui'
 import { run } from '@/helpers/instance'
@@ -30,6 +30,86 @@ const modHits = ref<ModHit[]>([])
 const modLoading = ref(false)
 const modError = ref('')
 const modLoaded = ref(false)
+
+// The official NovaSMP server is a bundled entry, never user-removable.
+const NOVASMP_ADDRESS = 'novasmp.gg'
+const FAVORITES_KEY = 'nova.launcher.servers.v1'
+type FavoriteServer = { id: string; name: string; address: string }
+const favoriteServers = ref<FavoriteServer[]>([])
+const serverName = ref('')
+const serverAddress = ref('')
+const serverEditingId = ref('')
+const serverFormOpen = ref(false)
+const serverError = ref('')
+const serverNotice = ref('')
+const addressKey = (address: string) => address.trim().toLowerCase()
+const isNovaServer = (address: string) => addressKey(address).replace(/:\d+$/, '') === NOVASMP_ADDRESS
+
+onMounted(() => {
+  try {
+    const data: unknown = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]')
+    if (!Array.isArray(data)) return
+    const seen = new Set<string>()
+    favoriteServers.value = data.filter((entry): entry is FavoriteServer => {
+      if (!entry || typeof entry !== 'object') return false
+      const item = entry as Record<string, unknown>
+      if (typeof item.id !== 'string' || typeof item.name !== 'string' || typeof item.address !== 'string') return false
+      const normalized = addressKey(item.address)
+      if (!normalized || isNovaServer(normalized) || seen.has(normalized)) return false
+      seen.add(normalized)
+      return true
+    }).map(item => ({ id: item.id, name: item.name.slice(0, 50), address: item.address.slice(0, 255) }))
+  } catch {
+    serverError.value = 'Could not read saved servers. Existing storage was not overwritten.'
+  }
+})
+watch(favoriteServers, value => {
+  try { localStorage.setItem(FAVORITES_KEY, JSON.stringify(value)) }
+  catch { serverError.value = 'Could not save the server list on this device.' }
+}, { deep: true })
+
+function editServer(server?: FavoriteServer) {
+  serverName.value = server?.name || ''
+  serverAddress.value = server?.address || ''
+  serverEditingId.value = server?.id || ''
+  serverError.value = ''
+  serverNotice.value = ''
+  serverFormOpen.value = true
+}
+function saveServer() {
+  const name = serverName.value.trim()
+  const address = serverAddress.value.trim()
+  serverError.value = ''
+  if (!name || name.length > 50) { serverError.value = 'Please enter a name up to 50 characters.'; return }
+  if (!/^[a-z0-9.-]+(?::\d{1,5})?$/i.test(address)) { serverError.value = 'Enter a valid Java server hostname, optionally with :port.'; return }
+  const port = address.match(/:(\d+)$/)?.[1]
+  if (port && (Number(port) < 1 || Number(port) > 65535)) { serverError.value = 'Invalid port number.'; return }
+  if (isNovaServer(address)) { serverError.value = 'NovaSMP is already pinned at the top.'; return }
+  if (favoriteServers.value.some(x => addressKey(x.address) === addressKey(address) && x.id !== serverEditingId.value)) {
+    serverError.value = 'That server is already saved.'
+    return
+  }
+  if (serverEditingId.value) {
+    const previous = favoriteServers.value.find(x => x.id === serverEditingId.value)
+    if (previous) { previous.name = name; previous.address = address }
+  } else favoriteServers.value.push({ id: crypto.randomUUID(), name, address })
+  serverFormOpen.value = false
+  serverNotice.value = 'Saved in your Nova Launcher favorites.'
+}
+function removeServer(server: FavoriteServer) {
+  if (!window.confirm('Remove ' + server.name + ' from Nova favorites?')) return
+  favoriteServers.value = favoriteServers.value.filter(x => x.id !== server.id)
+  serverNotice.value = 'Server removed from Nova favorites.'
+}
+async function copyServer(address: string) {
+  try {
+    await navigator.clipboard.writeText(address)
+    serverError.value = ''
+    serverNotice.value = 'Copied ' + address
+  } catch {
+    serverError.value = 'Clipboard unavailable. Copy the displayed address manually.'
+  }
+}
 watch(() => props.instances, (items) => {
   if (!items.some((item) => item.id === selected.value)) selected.value = items[0]?.id ?? ''
 }, { immediate: true })
@@ -169,15 +249,44 @@ function openSettings() {
       </div>
 
       <div v-else-if="page === 'servers'" class="nova-content-stack">
-        <div class="nova-glass nova-detail">
-          <h2>NovaSMP</h2>
-          <p>Server connection and status will be connected to the official NovaSMP information. No invented player counts or server address.</p>
-          <a class="nova-button nova-primary nova-inline-link" href="https://web.novasmp.gg" target="_blank" rel="noopener noreferrer">NovaSMP website ↗</a>
+        <div class="nova-glass nova-featured-server">
+          <div class="nova-featured-emblem" aria-hidden="true">✧</div>
+          <div class="nova-featured-details">
+            <div class="nova-eyebrow">OFFICIAL NOVASMP · FEATURED · PINNED</div>
+            <h2>NovaSMP</h2>
+            <p>Survival, raiding, community events and Java + Bedrock crossplay. Always present in Nova Launcher.</p>
+            <div class="nova-server-ip"><span>JAVA SERVER</span><code>{{ NOVASMP_ADDRESS }}</code></div>
+            <div class="nova-server-buttons">
+              <button class="nova-button nova-primary" @click="copyServer(NOVASMP_ADDRESS)">Copy Java IP</button>
+              <a class="nova-button nova-soft nova-inline-link" href="https://web.novasmp.gg" target="_blank" rel="noopener noreferrer">Website ↗</a>
+            </div>
+          </div>
         </div>
-        <div class="nova-glass nova-detail">
-          <h2>Other servers</h2>
-          <p>Use your Minecraft multiplayer screen to connect to other servers. A managed favorite-server list is planned for Nova.</p>
+        <p v-if="serverError" class="nova-error" role="alert">{{ serverError }}</p>
+        <p v-if="serverNotice" class="nova-server-notice" role="status">{{ serverNotice }}</p>
+        <div class="nova-server-section-heading">
+          <div><h2>My Servers</h2><p>Your Java server shortcuts, saved locally in Nova.</p></div>
+          <button class="nova-button nova-primary" @click="editServer()">+ Add Server</button>
         </div>
+        <form v-if="serverFormOpen" class="nova-glass nova-server-form" @submit.prevent="saveServer">
+          <label>SERVER NAME<input v-model="serverName" class="nova-glass" maxlength="50" placeholder="My server" required /></label>
+          <label>JAVA ADDRESS<input v-model="serverAddress" class="nova-glass" maxlength="255" placeholder="example.com:25565" required /></label>
+          <div class="nova-server-buttons">
+            <button class="nova-button nova-primary" type="submit">{{ serverEditingId ? 'Save Changes' : 'Add Server' }}</button>
+            <button class="nova-button nova-soft" type="button" @click="serverFormOpen = false">Cancel</button>
+          </div>
+        </form>
+        <div v-if="!favoriteServers.length && !serverFormOpen" class="nova-glass nova-empty">No other servers yet. Add any server to keep its address handy.</div>
+        <div v-for="server in favoriteServers" :key="server.id" class="nova-glass nova-server-favorite">
+          <div class="nova-favorite-icon" aria-hidden="true">▤</div>
+          <div class="nova-favorite-details"><strong>{{ server.name }}</strong><code>{{ server.address }}</code></div>
+          <div class="nova-server-buttons">
+            <button class="nova-button nova-soft" @click="copyServer(server.address)">Copy</button>
+            <button class="nova-button nova-soft" @click="editServer(server)">Edit</button>
+            <button class="nova-button nova-soft" @click="removeServer(server)">Remove</button>
+          </div>
+        </div>
+        <p class="nova-server-disclaimer">The official NovaSMP shortcut is permanent. Minecraft's in-game multiplayer list is not yet synchronized.</p>
       </div>
 
       <div v-else class="nova-content-stack">
