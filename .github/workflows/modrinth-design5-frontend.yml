@@ -49,4 +49,4 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Typecheck and build the actual frontend
         working-directory: modrinth-upstream
-        run: pnpm --filter @modrinth/app-frontend run build
+        run: pnpm turbo run build --filter=@modrinth/app-frontend
